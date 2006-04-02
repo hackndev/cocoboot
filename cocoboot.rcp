@@ -1,0 +1,94 @@
+#include "cocoboot_r.h"
+
+APPLICATIONICONNAME ID 1000 "Cocoboot"
+VERSION "0.1"
+
+ICON
+BEGIN
+	BITMAP "icons/icon_bw.bmp"  BPP 1 TRANSPARENTINDEX 0  DENSITY 1
+	BITMAP "icons/icon_256.bmp" BPP 8 TRANSPARENT 0 255 0 DENSITY 1
+        BITMAP "icons/icon_hr.bmp"  BPP 8 TRANSPARENT 0 255 0 DENSITY 2
+END
+
+SMALLICON
+BEGIN
+	BITMAP "icons/icon_bw_s.bmp"  BPP 1 TRANSPARENTINDEX 0  DENSITY 1
+	BITMAP "icons/icon_256_s.bmp" BPP 8 TRANSPARENT 0 255 0 DENSITY 1
+        BITMAP "icons/icon_hr_s.bmp"  BPP 8 TRANSPARENT 0 255 0 DENSITY 2
+END
+
+MENU ID MainFormMenu
+BEGIN
+	PULLDOWN "Info"
+	BEGIN
+		MENUITEM "CPU" MenuItemCPU
+		MENUITEM "Memory" MenuItemMem
+		MENUITEM "LCD registers (TODO)" MenuItemLCD
+	END
+END
+
+FORM ID MainForm AT (0 0 160 160) NOFRAME USABLE MENUID MainFormMenu HELPID GnuGpl MODAL
+BEGIN
+        TITLE "Cocoboot Linux Loader"
+/*
+	LABEL "Open port:" AUTOID  AT (2 146) FONT 0
+        LABEL "Kernel command line:" AUTOID  AT (2 86) FONT 0
+	FIELD ID KernelParam AT (2 PREVBOTTOM+1 156 45) MAXCHARS 255  MULTIPLELINES UNDERLINED
+        BUTTON "Boot!" ID LinuxButton AT (117 PREVBOTTOM+2 40 AUTO)
+	POPUPTRIGGER "None" ID PortTrigger  AT (46 145 60 AUTO)
+	LIST "None" "HotSync" "Cradle" "InfraRed" "Console" "Cradle232" "CradleUSB" ID PortList    AT (62 79 80 79) VISIBLEITEMS 7 NONUSABLE
+	POPUPLIST ID PortTrigger  PortList
+*/
+	FIELD ID LogField  AT (2 16 156 69) MAXCHARS 255 MULTIPLELINES
+END
+
+/*
+ALERT ID StartupAlert WARNING
+BEGIN
+    TITLE "Big Fat Warning"
+    MESSAGE "The code you are about to run may corrupt your PalmOS data. Make sure you backed up your data before you hit \"OK\". You have been warned."
+    BUTTON "OK"  "Cancel"
+END
+
+ALERT ID ErrorAlert ERROR
+BEGIN
+    TITLE "Error"
+    MESSAGE "^1\n^2\n^3"
+    BUTTONS  "OK"
+END	    
+
+*/
+
+STRING GnuGpl	"Cocoboot, PalmOS Linux loader.\n"\
+		"Copyright (C) 2006\n"\
+		"\n"\
+		"www.hackndev.com\n"\
+		"\n"\
+		"This program is free softwa-\n"\
+		"re. you can redistribute it\n"\
+		"and/or modify it under the\n"\
+		"terms of the GNU General\n"\
+		"Public License as published\n"\
+		"by the Free Software\n"\
+		"Foundation.\n"\
+		"\n"\
+		"This program is distributed\n"\
+		"in the hope that it will be\n"\
+		"useful, but WITHOUT ANY\n"\
+		"WARRANTY; without even\n"\
+		"the implied warranty of\n"\
+		"MERCHANTABILITY or\n"\
+		"FITNESS FOR A PARTICULAR\n"\
+		"PURPOSE.  See the GNU\n"\
+		"General Public License for\n"\
+		"more details.\n"\
+		"\n"\
+		"You should have received a\n"\
+		"copy of the GNU General\n"\
+		"Public License along with\n"\
+		"this program; if not, write\n"\
+		"to the Free Software\n"\
+		"Foundation, Inc., 59 Temple\n"\
+		"Place, Suite 330, Boston, MA\n"\
+		"02111-1307 USA"
+
