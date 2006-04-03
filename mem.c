@@ -98,13 +98,27 @@ UInt32 virt_to_phys(UInt32 virt)
 }
 
 /* find an empty virtual address and map phys there */
+/* original code from HARET/P */
 void *map_mem(UInt32 phys)
 {
-  UInt32 ttb = get_ttb();
-  
+  UInt32 ttb = get_virt_ttb();
+  UInt32 i = ttb;
+  UInt32 entry, entry_rec, va;
   if(!ttb) return NULL;
-
-  // TODO
+  
+  while (i <= ttb+0x3FFC) {
+    // is 0x3ffc (0x4000-0x7ffc) working for all handhelds?
+    entry = EndianSwap32(*((UInt32 *)i));
+    if(entry & 3) {
+      entry_rec = phys;
+      entry_rec = (entry_rec & 0xFFF00000)+0x0C02;
+      va = ((i & 0x3FFC) >> 2) << 0x14;
+      entry = EndianSwap32(entry);
+      *((UInt32 *)i) = entry;
+      return va;
+    }
+    i+=4;
+  }
 
   return NULL;
 }
