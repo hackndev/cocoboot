@@ -21,7 +21,11 @@ Boolean mainform_event(EventPtr event)
 
     lprintf("RAM base: 0x%lx\n", get_ram_base());
     lprintf("RAM size: %ldmb (0x%lx)\n", get_ram_size()>>20, get_reported_ram_size());
-    lprintf("TLB loc: 0x%lx\n", get_tlb());
+    lprintf("TTB loc: 0x%lx\n", get_ttb());
+
+#if 0
+    lprintf("LCD @ 0x%lx\n", virt_to_phys(0x200000));
+#endif
 
     cpu = get_cpu();
     lprintf("CPU ID: %lx\n", get_cpu_id());

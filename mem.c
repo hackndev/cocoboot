@@ -59,23 +59,52 @@ UInt32 get_reported_ram_size()
 }
 
 /* Find out the translation table base physical address */
-UInt32 get_tlb()
+UInt32 get_ttb()
 {
-  static UInt32 tlb = 0;
+  static UInt32 ttb = 0;
 
-  if(!tlb) {
+  if(!ttb) {
     push_uint32(arm_stack, 2); /* register 2 */
     push_uint32(arm_stack, 15); /* coprocessor 15 */
-    tlb = call_arm(arm_stack, ARM_read_cp) & 0xffffc000;
+    ttb = call_arm(arm_stack, ARM_read_cp) & 0xffffc000;
   }
-  return tlb;
+  return ttb;
 }
 
+UInt32 get_virt_ttb()
+{
+  /* FIXME: Hack alert. We're making an assumption about where PalmOS maps the first part of RAM..
+   * Is there a better way of doing this? we'll need to hardcode the value for T|T2 
+   */
+  return get_ttb() & 0x00FFFFFF;
+}
+
+UInt32 virt_to_phys(UInt32 virt)
+{
+  UInt32 phys;
+  UInt32 ttb = get_virt_ttb();
+  UInt32 *fld_p = ttb + ((virt >> 20) << 2);
+  UInt32 fld = EndianSwap32(*fld_p);
+
+  if((fld & 3) == 0) { // invalid
+    phys = 0;
+  } else if((fld & 3) == 1) { // page
+    phys = (fld & 0xfff00000) | (virt & 0x000fffff);
+  } else if((fld & 3) == 2) { // section
+    phys = 0; // TODO
+  }
+  //sprintf("FLB pos %lx\n", fld);
+  return phys;
+}
+
+/* find an empty virtual address and map phys there */
 void *map_mem(UInt32 phys)
 {
-  UInt32 tlb = get_tlb();
+  UInt32 ttb = get_ttb();
   
-  if(!tlb) return NULL;
+  if(!ttb) return NULL;
+
+  // TODO
 
   return NULL;
 }

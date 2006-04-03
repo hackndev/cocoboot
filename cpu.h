@@ -1,6 +1,10 @@
 #define CPU_VENDOR_MASK 0xff000000
 #define CPU_MODEL_MASK 0xff000fff
 
+/* Note: These CPU IDs are from TCPMP. Most have been confirmed by people testing 
+ *       in the Hack&Dev forum.
+ */
+
 /* CPU Vendors */
 #define CPUV_INTEL 0x69000000
 #define CPUV_TI 0x54000000
@@ -8,7 +12,7 @@
 
 /* Intel CPUs */
 #define CPU_SA1100 0x69000B11 /* StrongArm */
-#define CPU_PXA25X 0x69000010  /* XScale */
+#define CPU_PXA25X 0x69000010 /* XScale */
 #define CPU_PXA27X 0x69000011
 #define CPU_PXA210 0x69000012
 

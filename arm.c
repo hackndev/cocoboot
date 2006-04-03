@@ -21,9 +21,24 @@
 
 STANDALONE_CODE_RESOURCE_ID (0);
 
+/* Disable IRQ and FIQ */
+#define irq_off() asm volatile ("mrs r0, cpsr \n" \
+                    "orr r0, r0, #0xc0 \n" \
+		    "msr cpsr, r0" : : : "r0" )
+
+/* Enable IRQ and FIQ */
+#define irq_on() asm volatile ("mrs r0, cpsr \n" \
+                    "and r0, r0, #0xffffff3f \n" \
+		    "msr cpsr, r0" : : : "r0" )
+
+/* Flush instruction and data caches */
+#define flush_caches() asm volatile ("mov r0, #0 \n" \
+			  "mcr p15, 0, r0, c7, c7, 0 \n" \
+                          "mcr p15, 0, r0, c8, c7, 0" : : : "r0")
+
 unsigned long read_cp(unsigned long cp, unsigned long reg);
 
-/* Note: This function needs to be at the top of the file */
+/* Note: This function needs to be kept at the top of the file */
 unsigned long arm_entry(const void *emulStateP, char *userData68KP, Call68KFuncType *call68KFuncP)
 {
   ArmStack *stack = (ArmStack*)userData68KP;
