@@ -27,7 +27,11 @@
 #include "cocoboot_r.h"
 #include "mainform.h"
 
+#include "mem.h"
+#include "cpu.h"
+
 ArmStack arm_stack[20];
+ArmGlobals arm_globals;
 FormPtr mainform;
 
 void SetFieldTextFromStr(FieldPtr fldP, char *strP, Boolean redraw)
@@ -106,6 +110,19 @@ inline UInt32 pop_uint32(ArmStack * stack)
 }
 
 /**
+ * Collect some basic information that the ARM-side is
+ * going to need a lot.
+ */
+void setup_arm_globals()
+{
+	arm_globals.pttb = EndianFix32(get_ttb());
+	arm_globals.vttb = EndianFix32(get_virt_ttb());
+	arm_globals.cpu = EndianFix32(get_cpu());
+	arm_globals.ram_base = EndianFix32(get_ram_base());
+	arm_globals.ram_size = EndianFix32(get_ram_size());
+}
+
+/**
  * Call an ARM side function
  */
 UInt32 call_arm(ArmStack * stack, UInt32 func)
@@ -127,6 +144,7 @@ UInt32 call_arm(ArmStack * stack, UInt32 func)
 	}
 
 	push_uint32(stack, func);
+	push_uint32(stack, (UInt32)&arm_globals);
 
 	ret = PceNativeCall(arm_code, stack);
 	MemHandleUnlock(arm_code_handle);
@@ -170,6 +188,8 @@ UInt16 start_app()
 {
 	arm_stack[0] = 0;
 	FrmGotoForm(MainForm);
+
+	setup_arm_globals();
 	return 0;
 }
 

@@ -52,13 +52,22 @@ void lcd_info()
 
 }
 
+void lcd_test()
+{
+	char msg[255];
+	UInt32 ret;
+
+	ret = call_arm(arm_stack, ARM_fb_test);
+
+	sprintf(msg, "0x%08lx", ret);
+	FrmCustomAlert(InfoAlert, "LCD test result:", msg, " ");
+}
+
 
 void cpu_info()
 {
 	char msg[255];
 	UInt32 dev[2], cpu;
-
-	call_arm(arm_stack, 2);
 
 	dev[0] = get_dev_id();
 	dev[1] = 0; /* string terminator ;-) */
@@ -67,7 +76,7 @@ void cpu_info()
 
 	sprintf(msg, "Machine: %s\n"
 		"CPU ID: 0x%08lx\n"
-		"CPU: %s %s",
+		"CPU: %s %s\n",
 		(char*)dev,
 		get_cpu_id(),
 		get_cpu_vendor(cpu),
@@ -99,6 +108,9 @@ Boolean mainform_menu_event(Int16 id)
 	switch(id) {
 	case MenuItemLCD:
 		lcd_info();
+		return true;
+	case MenuItemLCDTest:
+		lcd_test();
 		return true;
 	case MenuItemCPU:
 		cpu_info();

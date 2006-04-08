@@ -24,6 +24,7 @@ BEGIN
 		MENUITEM "CPU" MenuItemCPU
 		MENUITEM "Memory" MenuItemMem
 		MENUITEM "LCD registers (PXA only)" MenuItemLCD
+		MENUITEM "LCD test (PXA only)" MenuItemLCDTest
 	END
 END
 

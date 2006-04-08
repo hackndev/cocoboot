@@ -87,14 +87,14 @@ UInt32 virt_to_phys(UInt32 virt)
 	UInt32 *fld_p = (UInt32*) (ttb + ((virt >> 20) << 2));
 	UInt32 fld = EndianFix32(*fld_p);
 
-	if ((fld & 3) == 0) {	// invalid
+	if ((fld & FLD_MASK) == 0) {	// invalid
 		phys = 0;
-	} else if ((fld & 3) == 1) {	// page
+	} else if ((fld & FLD_MASK) == FLD_SECTION) {	// section
 		phys = (fld & 0xfff00000) | (virt & 0x000fffff);
-	} else if ((fld & 3) == 2) {	// section
-		phys = 0;	// TODO
+	} else {
+		phys = 0;	// TODO: small and coarse pages
 	}
-	//sprintf("FLB pos %lx\n", fld);
+
 	return phys;
 }
 

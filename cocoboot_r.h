@@ -7,6 +7,7 @@
 #define MenuItemCPU     1000
 #define MenuItemMem     1001
 #define MenuItemLCD     1002
+#define MenuItemLCDTest 1003
 
 #define ErrorAlert      1000
 #define InfoAlert       1001

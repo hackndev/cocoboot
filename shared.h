@@ -17,8 +17,19 @@
 
 /* ARM function calls */
 #define ARM_read_cp 1 /* (coproc, reg) */
+#define ARM_fb_test 2 /* () */
 
 typedef UInt32 ArmStack;
+
+typedef struct {
+	UInt32 pttb;
+	UInt32 vttb;
+
+	UInt32 cpu;
+
+	UInt32 ram_base;
+	UInt32 ram_size;
+} ArmGlobals;
 
 void push_uint32(ArmStack *stack, UInt32 n);
 UInt32 pop_uint32(ArmStack *stack);
