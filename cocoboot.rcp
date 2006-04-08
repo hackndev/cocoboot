@@ -23,7 +23,7 @@ BEGIN
 	BEGIN
 		MENUITEM "CPU" MenuItemCPU
 		MENUITEM "Memory" MenuItemMem
-		MENUITEM "LCD registers (TODO)" MenuItemLCD
+		MENUITEM "LCD registers (PXA only)" MenuItemLCD
 	END
 END
 
@@ -39,7 +39,7 @@ BEGIN
 	LIST "None" "HotSync" "Cradle" "InfraRed" "Console" "Cradle232" "CradleUSB" ID PortList    AT (62 79 80 79) VISIBLEITEMS 7 NONUSABLE
 	POPUPLIST ID PortTrigger  PortList
 */
-	FIELD ID LogField  AT (2 16 156 69) MAXCHARS 255 MULTIPLELINES
+	FIELD ID LogField  AT (2 16 156 69) MAXCHARS 4096 MULTIPLELINES
 END
 
 /*
@@ -50,6 +50,8 @@ BEGIN
     BUTTON "OK"  "Cancel"
 END
 
+*/
+
 ALERT ID ErrorAlert ERROR
 BEGIN
     TITLE "Error"
@@ -57,7 +59,14 @@ BEGIN
     BUTTONS  "OK"
 END	    
 
-*/
+ALERT ID InfoAlert INFORMATION
+BEGIN
+    TITLE "Information"
+    MESSAGE "^1\n^2\n^3"
+    BUTTONS  "OK"
+END	    
+
+
 
 STRING GnuGpl	"Cocoboot, PalmOS Linux loader.\n"\
 		"Copyright (C) 2006\n"\

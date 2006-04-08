@@ -1,6 +1,6 @@
 CC-68K = m68k-palmos-gcc
 CC-ARM = arm-palmos-gcc
-CFLAGS = -Wall -palmos5.0R3 -O2 -s #-I/opt/palmdev/sdk-5/include/Core/System/ -I/usr/share/prc-tools/include
+CFLAGS = -Wall -palmos5.0R3  -s #-I/opt/palmdev/sdk-5/include/Core/System/ -I/usr/share/prc-tools/include
 LDFLAGS = -static -palmos5.0R3 -L/usr/m68k-palmos/lib -lPalmOSGlue -L/usr/local/share/palmdev/sdk-5r3/lib/m68k-palmos-coff/
 EXECS = cocoboot cocoboot-arm
 OBJS-68K = cocoboot.o mainform.o mem.o cpu.o
