@@ -25,6 +25,7 @@ BEGIN
 		MENUITEM "Memory" MenuItemMem
 		MENUITEM "LCD registers (PXA only)" MenuItemLCD
 		MENUITEM "LCD test (PXA only)" MenuItemLCDTest
+		MENUITEM "Boot Linux" MenuItemBootLinux
 	END
 END
 
@@ -35,12 +36,12 @@ BEGIN
 	LABEL "Open port:" AUTOID  AT (2 146) FONT 0
         LABEL "Kernel command line:" AUTOID  AT (2 86) FONT 0
 	FIELD ID KernelParam AT (2 PREVBOTTOM+1 156 45) MAXCHARS 255  MULTIPLELINES UNDERLINED
-        BUTTON "Boot!" ID LinuxButton AT (117 PREVBOTTOM+2 40 AUTO)
 	POPUPTRIGGER "None" ID PortTrigger  AT (46 145 60 AUTO)
 	LIST "None" "HotSync" "Cradle" "InfraRed" "Console" "Cradle232" "CradleUSB" ID PortList    AT (62 79 80 79) VISIBLEITEMS 7 NONUSABLE
 	POPUPLIST ID PortTrigger  PortList
 */
-	FIELD ID LogField  AT (2 16 156 69) MAXCHARS 4096 MULTIPLELINES
+	FIELD ID LogField  AT (2 16 156 89) MAXCHARS 4096 MULTIPLELINES
+        BUTTON "Boot!" ID LinuxButton AT (62 99 80 29)
 END
 
 /*

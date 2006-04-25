@@ -5,9 +5,13 @@
 #include "cpu.h"
 #include "mem.h"
 #include "regs.h"
+#include "imgloader.h"
 #include <stdio.h>
+#include <DataMgr.h>
 
 UInt32 reg(UInt32 addr);
+int use_initrd;
+int kernel_ok;
 
 /* read a value from the given physical address */
 UInt32 reg(UInt32 phys) {
@@ -17,6 +21,7 @@ UInt32 reg(UInt32 phys) {
 	val = *addr;
 	return EndianSwap32(val);
 }
+
 
 void lcd_info()
 {
@@ -57,7 +62,7 @@ void lcd_test()
 	char msg[255];
 	UInt32 ret;
 
-	ret = call_arm(arm_stack, ARM_fb_test);
+	ret = call_arm(arm_stack, 3);
 
 	sprintf(msg, "0x%08lx", ret);
 	FrmCustomAlert(InfoAlert, "LCD test result:", msg, " ");
@@ -103,6 +108,72 @@ void mem_info()
 }
 
 
+UInt32 load_parts(int n, char *name, void **image)
+{
+	/* more ugly code... */
+	Err err;
+	char loc[32];
+	UInt32 size = 1000;
+	Int32 vol, bytes;
+
+	lprintf("Loading %s... ", name);
+	vol = search_image(name, loc, sizeof(loc), &size);
+	if(vol < -1) goto out;
+	
+	if((err=FtrPtrNew (CREATOR_ID, FEATURE_NUM + n, size, image))) {
+		lprintf("FtrPtrNew ");
+		goto out;
+	}
+	
+	bytes = load_image(name, size, (UInt16)vol, *image);
+	lprintf("%ld b ", bytes);
+	
+	if(bytes == size) {
+		lprintf("OK.\n");
+		return size;
+	}
+
+	FtrPtrFree(CREATOR_ID, FEATURE_NUM + n);
+
+ out:
+	lprintf("failed. (%d/%d)\n", vol, err);
+	return 0;
+}
+
+void boot_linux()
+{
+	void *kernel=NULL, *initrd=NULL;
+	UInt32 kernel_size=0, initrd_size=0;
+	UInt32 ret;
+
+	kernel_size = load_parts(0, "/zImage", &kernel);
+	if(kernel_size) {
+		if(use_initrd) {
+			initrd_size = load_parts(1, "/initrd.gz", &initrd);
+		}
+
+		if(!use_initrd || initrd_size) {
+			
+			//lprintf("Farewell 68k world!\n");
+
+			push_uint32(arm_stack, (UInt32)"init=/linuxrc");
+			push_uint32(arm_stack, initrd_size);
+			push_uint32(arm_stack, (UInt32)initrd);
+			push_uint32(arm_stack, kernel_size);
+			push_uint32(arm_stack, (UInt32)kernel);
+
+			ret = call_arm(arm_stack, ARM_boot_linux);
+
+			/* we're back?! Boot must have failed. */
+			lprintf("Returned: %lx\n", ret);
+
+			FtrPtrFree(CREATOR_ID, FEATURE_NUM);
+		}
+		FtrPtrFree(CREATOR_ID, FEATURE_NUM + 1);
+	}
+	//lprintf("Boot aborted.\n");
+}
+
 Boolean mainform_menu_event(Int16 id)
 {
 	switch(id) {
@@ -118,9 +189,24 @@ Boolean mainform_menu_event(Int16 id)
 	case MenuItemMem:
 		mem_info();
 		return true;
-
 	}
 	return false;
+}
+
+int check_image(char *name)
+{
+	char loc[32];
+	UInt32 size = 0;
+	Int32 vol;
+
+	vol = search_image(name, loc, sizeof(loc), &size);
+	if(vol>=-1) {
+		lprintf("[%s] %s: %ld bytes\n", loc, name, size);
+		return 1;
+	} else {
+		lprintf("%s not found! (%ld)\n", name, vol);
+	}
+	return 0;
 }
 
 Boolean mainform_event(EventPtr event)
@@ -128,16 +214,31 @@ Boolean mainform_event(EventPtr event)
 	Boolean handled = false;
 	FormPtr form = NULL;
 
-
 	if (event->eType == frmOpenEvent) {
 		form = FrmGetActiveForm();
 		FrmDrawForm(form);
 		handled = true;
-		lprintf("Mapped 0x44000000 => %lx\n", map_mem(0x44000000));
+
+		kernel_ok = check_image("/zImage");
+		use_initrd = check_image("/initrd.gz");
 
 	} else if (event->eType == menuEvent) {
 		return mainform_menu_event(event->data.menu.itemID);
 	}
+
+	if (event->eType == ctlSelectEvent) {
+		if (event->data.ctlSelect.controlID == LinuxButton) {
+#ifdef WARNING
+			if (FrmAlert (StartupAlert) == 1) {
+				FrmCloseAllForms ();
+				return 0;
+			}
+#endif
+			boot_linux();
+			return 0;
+		}
+	}
+
 
 	return handled;
 }

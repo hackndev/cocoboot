@@ -18,6 +18,7 @@
 /* ARM function calls */
 #define ARM_read_cp 1 /* (coproc, reg) */
 #define ARM_fb_test 2 /* () */
+#define ARM_boot_linux  3
 
 typedef UInt32 ArmStack;
 
@@ -29,6 +30,8 @@ typedef struct {
 
 	UInt32 ram_base;
 	UInt32 ram_size;
+
+	UInt32 mach_num;
 } ArmGlobals;
 
 void push_uint32(ArmStack *stack, UInt32 n);
