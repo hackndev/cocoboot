@@ -60,6 +60,8 @@ void map(ArmGlobals *g, UInt32 phys, UInt32 virt);
 unsigned long arm_entry(const void *emulStateP, char *userData68KP,
 			Call68KFuncType * call68KFuncP)
 {
+	int i;
+	
 	ArmStack *stack = (ArmStack *) userData68KP;
 	ArmGlobals *g;
 	UInt32 func;
@@ -86,6 +88,7 @@ unsigned long arm_entry(const void *emulStateP, char *userData68KP,
 		ret = fb_test(g);
 		break;
 	case ARM_boot_linux:
+
 		ret = boot_linux(g, (void*)pop_uint32(stack), 
 				 pop_uint32(stack), (void*)pop_uint32(stack),
 				 pop_uint32(stack), (char*)pop_uint32(stack));
@@ -102,17 +105,23 @@ unsigned long arm_entry(const void *emulStateP, char *userData68KP,
 	return ret;
 }
 
+void testfunc()
+{
+	while(1);
+}
+
 UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 		  void *initrd, UInt32 initrd_size, char *cmdline)
 {
 	unsigned long register i;
 	UInt32 ret=0;
-	void *pg=NULL;
+	ArmGlobals *pg=NULL;
 	void *vstack=NULL, *vprogc=NULL;
 	void *pstack=NULL, *pprogc=NULL;
 	void *vphys_jump=NULL, *pphys_jump=NULL;
 	void *vget_pc=NULL;
-
+	UInt32 *dest, *src;
+	
 	if(!kernel || !cmdline) {
 		return 0xc0ffee;
 	}
@@ -145,6 +154,12 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 
 	/* Work out the physical address of the phys_jump_label below */
 	asm volatile ("adr %0, phys_jump_label" : "=r"(vphys_jump));	
+	asm ("nop");
+	asm ("nop");
+	asm ("nop");
+	asm ("nop");
+	asm ("nop");
+	asm ("nop");
 	pphys_jump = (void *)virt_to_phys(g, (UInt32) vphys_jump);
 
 	if(!pprogc) return 0xbadc01a3; /* running out of creative errors */
@@ -155,11 +170,69 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	irq_off();	
 
 	map(g, (UInt32)pphys_jump, (UInt32)pphys_jump);
-	ret = (UInt32)(pphys_jump);
+	if(*(UInt32*)(vphys_jump) != *(UInt32*)(pphys_jump)) {
+		irq_on();
+		return 0xc01d;
+	}
+	
+	/* save physical stack pointer and make the jump to physical addresss
+	 * space
+	 */
+	asm volatile ("mov r0, %0\n"
+	              "mov pc, %1" : : "r"(pstack), "r"(pphys_jump) : "r0");
 
-	asm volatile ("phys_jump_label: nop");
+	/* something's gone wrong! (I've included the if to make sure the compiler
+	 * still generates the rest of the function
+	 */
+	if (pphys_jump) {
+		return 0xc0de;
+	}
+	
+	asm volatile ("phys_jump_label: nop\n"
+			"mov sp, r0"		
+			);
+	//testfunc();
 	/*** From this point on we're running at our physical address ***/
 
+	/* disable mmu and data cache */
+	asm volatile ("mrc p15, 0, r0, c1, c0, 0");
+	asm volatile ("bic r0, r0, #0x00002300");     // clear bits 13, 9:8 (--V- --RS)
+	asm volatile ("bic r0, r0, #0x00000087");     // clear bits 7, 2:0 (B--- -CAM)
+	asm volatile ("orr r0, r0, #0x00001000");     // set bit 12 (I) I-Cache
+	asm volatile ("mcr p15, 0, r0, c1, c0, 0");
+  
+	// invalidate TLB
+	asm volatile ("mov r0, #0");
+	asm volatile ("mcr p15, 0, r0, c8, c7, 0");
+
+	/* copy kernel into place */
+	dest = (UInt32*) (pg->ram_base + 0x8000);
+	src = (UInt32*) kernel;
+	for(i=0; i<kernel_size; i+=4) {
+		*(dest++) = *(src++);
+	}
+	
+
+	// Initializing before boot
+	asm volatile ("mov r0,   #0\n"
+			"mov r1, %0\n" /* mach */
+			"mov r2,   %1\n"
+			"add r2, r2, #0x00000100\n" /* atags */ 
+			/* jump to kernel */
+			"mov r3,   #0x00008000\n"
+			"orr r3, r3, %1\n"
+			"mov pc, r3"
+				: : "r"(pg->mach_num), "r"(pg->ram_base) : "r0", "r1", "r2", "r3");
+
+
+
+	
+	*(UInt32*)0x41300004 |= 0x3;
+	while (1) {
+		*(UInt32*)0x41300004 ^= 0x3;
+		for(i=0 ; i<40000000 ; i++);
+	}
+	
 	irq_on();
 	return ret;
 }
@@ -323,7 +396,7 @@ unsigned long read_cp(unsigned long cp, unsigned long reg)
 
 UInt32 virt_to_phys(ArmGlobals *g, UInt32 virt)
 {
-        UInt32 phys;
+        UInt32 phys=0x99999;
         UInt32 ttb = g->vttb;
         UInt32 *fld_p = (UInt32*) (ttb + ((virt >> 20) << 2));
         UInt32 fld = *fld_p;
@@ -337,16 +410,15 @@ UInt32 virt_to_phys(ArmGlobals *g, UInt32 virt)
 	} else if ((fld & FLD_MASK) == FLD_COARSE) {
 		/* 2nd level, yuck. Here's hoping we can access it. */
 		sld_p = (UInt32*) ( ((fld & 0xFFFFFc00) | 
-				     ((virt & 0x7F000) >> 10))
+				     ((virt & 0xfF000) >> 10))
 				    - g->ram_base);
 		sld = *sld_p; /* crash? */
-		return sld;
 		if((sld & 3) == 2) {           /* small page */
 			phys = (sld & 0xFFFFF000) | (virt & 0xFFF);
 		} else if((sld & 3) == 1) {    /* large page */
 			phys = (sld & 0xFFFF0000) | (virt & 0xFFFF);
 		} else {                       /* invalid page */
-			phys = (sld & 0xFFFFFC00) | (virt & 0x3ff);
+			phys = (sld & 0xFFFFF000) | (virt & 0xfff);
 		}
         } else { 
 		/* FIXME: THIS IS WRONG!! */
