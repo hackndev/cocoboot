@@ -21,6 +21,7 @@
 #include "arm.h"
 #include "mem.h"
 #include "regs.h"
+#include "atag.h"
 
 STANDALONE_CODE_RESOURCE_ID(0);
 
@@ -110,7 +111,6 @@ void testfunc()
 	while(1);
 }
 
-void setup_atags();
 
 UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 		  void *initrd, UInt32 initrd_size, char *cmdline)
