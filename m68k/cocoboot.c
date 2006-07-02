@@ -120,7 +120,7 @@ void setup_arm_globals()
 	arm_globals.cpu = EndianFix32(get_cpu());
 	arm_globals.ram_base = EndianFix32(get_ram_base());
 	arm_globals.ram_size = EndianFix32(get_ram_size());
-	arm_globals.mach_num = 835;
+	arm_globals.mach_num = EndianFix32(835);
 }
 
 /**

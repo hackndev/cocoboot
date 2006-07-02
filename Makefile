@@ -5,13 +5,13 @@ all: cocoboot.prc
 install: cocoboot.prc
 	pilot-xfer -p /dev/tts/USB0 -i cocoboot.prc
 
-cocoboot.prc: $(EXECS) gui iTbl.bin
+cocoboot.prc: arm-objs m68k-objs gui iTbl.bin
 	build-prc -n Cocoboot -c ARML $(EXECS) *.bin
 
-arm/cocoboot.arm:
+arm-objs:
 	make -C arm
 
-m68k/cocoboot.m68k:
+m68k-objs:
 	make -C m68k
 
 iTbl.bin: #images/*

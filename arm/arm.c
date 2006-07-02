@@ -208,16 +208,46 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	asm volatile ("mcr p15, 0, r0, c8, c7, 0");
 
 	/* place kernel parameters in memory */
-	setup_atags();
+	setup_atags(pg->ram_base, pg->ram_size, 0);
 
 	/* copy kernel into place */
-	dest = (UInt32*) (pg->ram_base + 0x8000);
+	dest = (UInt32*) (0xA0000000 + 0x8000);
 	src = (UInt32*) kernel;
 	for(i=0; i<kernel_size; i+=4) {
 		*(dest++) = *(src++);
 	}
-	
+    // Initializing before boot
+    asm volatile ("mov r0,     #0");
+    asm volatile ("mov r1,     %0" : : "i"(835 & 0xFF));
+    asm volatile ("orr r1, r1, %0" : : "i"(835 & 0xF00));
+    
+    // ATAGs location
+    asm volatile ("mov r2,     %0" : : "i"(0xA0000000));
+    asm volatile ("add r2, r2, #0x00000100");
+    
+    // Jump to the kernel.
+    asm volatile ("mov r3,     #0x00008000");
+    asm volatile ("orr r3, r3, %0": : "i"(0xA0000000));
+    asm volatile ("mov pc, r3");
 
+
+#if 0
+    asm volatile ("mov r0,     #0");
+    asm volatile ("mov r1,     %0" : : "i"(835 & 0xff));
+    asm volatile ("orr r1, r1, %0" : : "i"(835 & 0xF00));
+
+    // ATAGs location
+    asm volatile ("mov r2,     %0" : : "i"(0xA0000000));
+    asm volatile ("add r2, r2, #0x00000100");
+
+    // Jump to the kernel.
+    asm volatile ("mov r3,     #0x00008000");
+    asm volatile ("orr r3, r3, %0": : "i"(0XA0000000));
+    asm volatile ("mov pc, r3");
+#endif
+    
+	
+#if 0
 	// Initializing before boot
 	asm volatile ("mov r0,   #0\n"
 			"mov r1, %0\n" /* mach */
@@ -228,7 +258,7 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 			"orr r3, r3, %1\n"
 			"mov pc, r3"
 				: : "r"(pg->mach_num), "r"(pg->ram_base) : "r0", "r1", "r2", "r3");
-
+#endif
 
 	*(UInt32*)0x41300004 |= 0x3;
 	while (1) {
