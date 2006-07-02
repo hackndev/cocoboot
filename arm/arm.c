@@ -110,6 +110,8 @@ void testfunc()
 	while(1);
 }
 
+void setup_atags();
+
 UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 		  void *initrd, UInt32 initrd_size, char *cmdline)
 {
@@ -201,9 +203,12 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	asm volatile ("orr r0, r0, #0x00001000");     // set bit 12 (I) I-Cache
 	asm volatile ("mcr p15, 0, r0, c1, c0, 0");
   
-	// invalidate TLB
+	/* invalidate TLB */
 	asm volatile ("mov r0, #0");
 	asm volatile ("mcr p15, 0, r0, c8, c7, 0");
+
+	/* place kernel parameters in memory */
+	setup_atags();
 
 	/* copy kernel into place */
 	dest = (UInt32*) (pg->ram_base + 0x8000);
@@ -225,14 +230,14 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 				: : "r"(pg->mach_num), "r"(pg->ram_base) : "r0", "r1", "r2", "r3");
 
 
-
-	
 	*(UInt32*)0x41300004 |= 0x3;
 	while (1) {
 		*(UInt32*)0x41300004 ^= 0x3;
 		for(i=0 ; i<40000000 ; i++);
 	}
 	
+	
+
 	irq_on();
 	return ret;
 }
