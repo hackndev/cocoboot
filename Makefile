@@ -1,10 +1,10 @@
 CC-68K = m68k-palmos-gcc
 CC-ARM = arm-palmos-gcc
-CFLAGS = -Wall -palmos5.0R3  -s #-I/opt/palmdev/sdk-5/include/Core/System/ -I/usr/share/prc-tools/include
+CFLAGS = -Wall -palmos5.0R3 -O  -s #-I/opt/palmdev/sdk-5/include/Core/System/ -I/usr/share/prc-tools/include
 LDFLAGS = -static -palmos5.0R3 -L/usr/m68k-palmos/lib -lPalmOSGlue -L/usr/local/share/palmdev/sdk-5r3/lib/m68k-palmos-coff/
 EXECS = cocoboot cocoboot-arm
 OBJS-68K = cocoboot.o mainform.o mem.o cpu.o imgloader.o
-OBJS-ARM = arm.o
+OBJS-ARM = arm.o atag.o
 
 all:
 	make cocoboot.prc
@@ -20,6 +20,10 @@ cocoboot-arm: $(OBJS-ARM)
 
 arm.o: arm.c cocoboot.h
 	$(CC-ARM) $(CFLAGS) -c arm.c
+	$(CC-ARM) $(CFLAGS) -S -c arm.c
+
+atag.o: atag.c cocoboot.h
+	$(CC-ARM) $(CFLAGS) -c atag.c
 
 cocoboot: $(OBJS-68K)
 	$(CC-68K) $(CFLAGS) $(LDFLAGS) $(OBJS-68K) -o cocoboot
@@ -38,7 +42,7 @@ mainform.o: mainform.h cocoboot.h mainform.c
 imgloader.o: cocoboot.h imgloader.c
 	$(CC-68K) $(CFLAGS) imgloader.c -c -o imgloader.o
 
-iTbl.bin: images/*
+iTbl.bin: #images/*
 	./chunkimages.py
 
 gui: cocoboot_r.h
