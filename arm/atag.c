@@ -7,9 +7,7 @@
  *
  */
 
-typedef unsigned long u32;
-typedef unsigned short u16;
-typedef unsigned char u8;
+#include <PalmOS.h>
 
 /* list of possible tags */
 #define ATAG_NONE       0x00000000
@@ -25,68 +23,68 @@ typedef unsigned char u8;
 
 /* structures for each atag */
 struct atag_header {
-		u32 size; /* length of tag in words including this header */
-		u32 tag;  /* tag type */
+		UInt32 size; /* length of tag in words including this header */
+		UInt32 tag;  /* tag type */
 };
 
 struct atag_core {
-		u32 flags;              /* bit 0 = read-only */
-		u32 pagesize;           /* systems page size (usually 4k) */
-		u32 rootdev;            /* root device number */
+		UInt32 flags;              /* bit 0 = read-only */
+		UInt32 pagesize;           /* systems page size (usually 4k) */
+		UInt32 rootdev;            /* root device number */
 };
 
 struct atag_mem {
-		u32     size;   /* size of the area */
-		u32     start;  /* physical start address */
+		UInt32     size;   /* size of the area */
+		UInt32     start;  /* physical start address */
 };
 
 struct atag_videotext {
-		u8              x;           /* width of display */
-		u8              y;           /* height of display */
-		u16             video_page;
-		u8              video_mode;
-		u8              video_cols;
-		u16             video_ega_bx;
-		u8              video_lines;
-		u8              video_isvga;
-		u16             video_points;
+		UInt8              x;           /* width of display */
+		UInt8              y;           /* height of display */
+		UInt16             video_page;
+		UInt8              video_mode;
+		UInt8              video_cols;
+		UInt16             video_ega_bx;
+		UInt8              video_lines;
+		UInt8              video_isvga;
+		UInt16             video_points;
 };
 
 struct atag_ramdisk {
-		u32 flags;      /* bit 0 = load, bit 1 = prompt */
-		u32 size;       /* decompressed ramdisk size in _kilo_ bytes */
-		u32 start;      /* starting block of floppy-based RAM disk image */
+		UInt32 flags;      /* bit 0 = load, bit 1 = prompt */
+		UInt32 size;       /* decompressed ramdisk size in _kilo_ bytes */
+		UInt32 start;      /* starting block of floppy-based RAM disk image */
 };
 
 struct atag_initrd2 {
-		u32 start;      /* physical start address */
-		u32 size;       /* size of compressed ramdisk image in bytes */
+		UInt32 start;      /* physical start address */
+		UInt32 size;       /* size of compressed ramdisk image in bytes */
 };
 
 struct atag_serialnr {
-		u32 low;
-		u32 high;
+		UInt32 low;
+		UInt32 high;
 };
 
 struct atag_revision {
-		u32 rev;
+		UInt32 rev;
 };
 
 struct atag_videolfb {
-		u16             lfb_width;
-		u16             lfb_height;
-		u16             lfb_depth;
-		u16             lfb_linelength;
-		u32             lfb_base;
-		u32             lfb_size;
-		u8              red_size;
-		u8              red_pos;
-		u8              green_size;
-		u8              green_pos;
-		u8              blue_size;
-		u8              blue_pos;
-		u8              rsvd_size;
-		u8              rsvd_pos;
+		UInt16             lfb_width;
+		UInt16             lfb_height;
+		UInt16             lfb_depth;
+		UInt16             lfb_linelength;
+		UInt32             lfb_base;
+		UInt32             lfb_size;
+		UInt8              red_size;
+		UInt8              red_pos;
+		UInt8              green_size;
+		UInt8              green_pos;
+		UInt8              blue_size;
+		UInt8              blue_pos;
+		UInt8              rsvd_size;
+		UInt8              rsvd_pos;
 };
 
 struct atag_cmdline {
@@ -109,12 +107,12 @@ struct atag {
 };
 
 
-#define tag_next(t)     ((struct atag *)((u32 *)(t) + (t)->hdr.size))
+#define tag_next(t)     ((struct atag *)((UInt32 *)(t) + (t)->hdr.size))
 #define tag_size(type)  ((sizeof(struct atag_header) + sizeof(struct type)) >> 2)
 
-static u32 strlen(const char *s)
+static UInt32 strlen(const char *s)
 {
-	u32 i=0;
+	UInt32 i=0;
 	while (s[i]) i++;
 	return i;
 }
@@ -143,7 +141,7 @@ static void setup_core_tag(struct atag **params, void * address,long pagesize)
 }
 
 static void
-setup_ramdisk_tag(struct atag **params, u32 size)
+setup_ramdisk_tag(struct atag **params, UInt32 size)
 {
 	(*params)->hdr.tag = ATAG_RAMDISK;         /* Ramdisk tag */
 	(*params)->hdr.size = tag_size(atag_ramdisk);  /* size tag */
@@ -156,7 +154,7 @@ setup_ramdisk_tag(struct atag **params, u32 size)
 }
 
 static void
-setup_initrd2_tag(struct atag **params, u32 start, u32 size)
+setup_initrd2_tag(struct atag **params, UInt32 start, UInt32 size)
 {
 	(*params)->hdr.tag = ATAG_INITRD2;         /* Initrd2 tag */
 	(*params)->hdr.size = tag_size(atag_initrd2);  /* size tag */
@@ -168,7 +166,7 @@ setup_initrd2_tag(struct atag **params, u32 start, u32 size)
 }
 
 static void
-setup_mem_tag(struct atag **params, u32 start, u32 len)
+setup_mem_tag(struct atag **params, UInt32 start, UInt32 len)
 {
 	(*params)->hdr.tag = ATAG_MEM;             /* Memory tag */
 	(*params)->hdr.size = tag_size(atag_mem);  /* size tag */
@@ -202,20 +200,12 @@ setup_end_tag(struct atag **params)
 	(*params)->hdr.size = 0;                   /* zero length */
 }
 
-void setup_atags(unsigned long rambase, unsigned long ramsize, const char *cmdline)
+void setup_atags(UInt32 tag_base, UInt32 ram_base, UInt32 ram_size, const char *cmd_line)
 {
 	struct atag *t;
 
-	setup_core_tag(&t, (void*)(rambase + 0x100), 4096);
-	setup_mem_tag(&t, rambase, ramsize);
-	//setup_cmdline_tag(&t, cmdline);
+	setup_core_tag(&t, (void*)(tag_base), 4096);
+	setup_mem_tag(&t, ram_base, ram_size);
+	setup_cmdline_tag(&t, cmd_line);
 	setup_end_tag(&t);
-/*
-	unsigned long i;
-	*(unsigned long*)0x41300004 |= 0x3;
-	while (1) {
-		*(unsigned long*)0x41300004 ^= 0x3;
-		for(i=0 ; i<40000000 ; i++);
-	}
-*/
 }

@@ -22,6 +22,13 @@ UInt32 reg(UInt32 phys) {
 	return EndianSwap32(val);
 }
 
+/* write a value to the given physical address */
+void set_reg(UInt32 phys, UInt32 val) {
+	UInt32 *addr = (UInt32*)phys_to_virt(phys);
+	if(!addr) return 0;
+	*addr = EndianSwap32(val);
+}
+
 
 void lcd_info()
 {
@@ -57,15 +64,38 @@ void lcd_info()
 
 }
 
+#define LCCR0_LDM (1<<3)
+#define LCCR0_DIS (1<<10)
+
 void lcd_test()
 {
 	char msg[255];
 	UInt32 ret;
+	UInt32 i, lccr0;
+	
+	//lccr0 = reg(LCCR0);
+	
+	//set_reg(LCSR, 0xffffffff); /* clear status */
+	//set_reg(LCCR0, lccr0 & ~LCCR0_LDM); /* enable LCD disable done */
+	//set_reg(LCCR0, (lccr0 & ~LCCR0_LDM) | LCCR0_DIS); /* disable LCD */
+	
+	/* wait a little */
+	//for (i=0; i<100000; i++);
+	
+	//set_reg(LCCR3, 0x4700004);
+	
+	/* wait a little more */
+	//for (i=0; i<100000; i++);
 
-	ret = call_arm(arm_stack, 3);
+	/* re-enable LCD controller */
+	//set_reg(LCCR0, lccr0);
+	
+	
+	ret = call_arm(arm_stack, ARM_fb_test);
 
 	sprintf(msg, "0x%08lx", ret);
 	FrmCustomAlert(InfoAlert, "LCD test result:", msg, " ");
+	
 }
 
 
@@ -156,7 +186,7 @@ void boot_linux()
 			
 			//lprintf("Farewell 68k world!\n");
 
-			push_uint32(arm_stack, (UInt32)"init=/linuxrc");
+			push_uint32(arm_stack, (UInt32)"init=/linuxrc root=/dev/boom");
 			push_uint32(arm_stack, initrd_size);
 			push_uint32(arm_stack, (UInt32)initrd);
 			push_uint32(arm_stack, kernel_size);

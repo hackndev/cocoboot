@@ -21,34 +21,13 @@
 #include "arm.h"
 #include "mem.h"
 #include "regs.h"
-#include "atag.h"
+#include "cpu.h"
 
 STANDALONE_CODE_RESOURCE_ID(0);
-
-/* Disable IRQ and FIQ */
-#define irq_off() asm volatile ("mrs r0, cpsr \n" \
-                    "orr r0, r0, #0xc0 \n" \
-		    "msr cpsr, r0" : : : "r0" )
-
-/* Enable IRQ and FIQ */
-#define irq_on() asm volatile ("mrs r0, cpsr \n" \
-                    "and r0, r0, #0xffffff3f \n" \
-		    "msr cpsr, r0" : : : "r0" )
-
-/* Flush instruction and data caches */
-#define flush_caches() asm volatile ("mov r0, #0 \n" \
-			  "mcr p15, 0, r0, c7, c7, 0 \n" \
-                          "mcr p15, 0, r0, c8, c7, 0" : : : "r0")
-
-#define CPWAIT asm ("mrc p15, 0, r10, c2, c0, 0");asm ("mov r0, r0");\
-               asm ("sub pc, pc, #4");
 
 /* Pixel format, lifedrive = 0x10000  */
 UInt32 fb_test(ArmGlobals *g);
 UInt32 foobar();
-UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
-		  void *initrd, UInt32 initrd_size, char *cmdline);
-
 UInt32 phys_to_virt(ArmGlobals *g, UInt32 phys);
 UInt32 virt_to_phys(ArmGlobals *g, UInt32 virt);
 UInt32 map_mem(ArmGlobals *g, UInt32 phys);
@@ -111,166 +90,6 @@ void testfunc()
 	while(1);
 }
 
-
-UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
-		  void *initrd, UInt32 initrd_size, char *cmdline)
-{
-	unsigned long register i;
-	UInt32 ret=0;
-	ArmGlobals *pg=NULL;
-	void *vstack=NULL, *vprogc=NULL;
-	void *pstack=NULL, *pprogc=NULL;
-	void *vphys_jump=NULL, *pphys_jump=NULL;
-	void *vget_pc=NULL;
-	UInt32 *dest, *src;
-	
-	if(!kernel || !cmdline) {
-		return 0xc0ffee;
-	}
-
-	/* since we're going to turn off the MMU, we need to translate
-	 *  all out pointers to physical addresses.
-	 */
-
-	kernel = (void *)virt_to_phys(g, (UInt32) kernel);
-	cmdline = (char *)virt_to_phys(g, (UInt32) cmdline);
-	if(initrd)
-		initrd = (void *)virt_to_phys(g, (UInt32) initrd);
-	pg = (void *)virt_to_phys(g, (UInt32) g);
-
-	if(!kernel | !cmdline | !pg) { 
-		return 0xbadc01a;
-	}
-
-	/* that includes the stack pointer ... */
-	asm volatile ("mov %0, sp" : "=r"(vstack) );
-	pstack = (void *)virt_to_phys(g, (UInt32) vstack);
-
-	/* ... and the program counter! */
-	asm volatile ("mov %0, pc" : "=r"(vprogc) );
-	pprogc = (void *)virt_to_phys(g, (UInt32) vprogc);
-
-	if(!pstack | !pprogc) { 
-		return 0xbadc01a2;
-	}
-
-	/* Work out the physical address of the phys_jump_label below */
-	asm volatile ("adr %0, phys_jump_label" : "=r"(vphys_jump));	
-	asm ("nop");
-	asm ("nop");
-	asm ("nop");
-	asm ("nop");
-	asm ("nop");
-	asm ("nop");
-	pphys_jump = (void *)virt_to_phys(g, (UInt32) vphys_jump);
-
-	if(!pprogc) return 0xbadc01a3; /* running out of creative errors */
-
-	/* From here on, if we're interrupted, PalmOS will hang us! 
-	 * Lock the door! What it won't know, won't hurt it.
-	 */
-	irq_off();	
-
-	map(g, (UInt32)pphys_jump, (UInt32)pphys_jump);
-	if(*(UInt32*)(vphys_jump) != *(UInt32*)(pphys_jump)) {
-		irq_on();
-		return 0xc01d;
-	}
-	
-	/* save physical stack pointer and make the jump to physical addresss
-	 * space
-	 */
-	asm volatile ("mov r0, %0\n"
-	              "mov pc, %1" : : "r"(pstack), "r"(pphys_jump) : "r0");
-
-	/* something's gone wrong! (I've included the if to make sure the compiler
-	 * still generates the rest of the function
-	 */
-	if (pphys_jump) {
-		return 0xc0de;
-	}
-	
-	asm volatile ("phys_jump_label: nop\n"
-			"mov sp, r0"		
-			);
-	//testfunc();
-	/*** From this point on we're running at our physical address ***/
-
-	/* disable mmu and data cache */
-	asm volatile ("mrc p15, 0, r0, c1, c0, 0");
-	asm volatile ("bic r0, r0, #0x00002300");     // clear bits 13, 9:8 (--V- --RS)
-	asm volatile ("bic r0, r0, #0x00000087");     // clear bits 7, 2:0 (B--- -CAM)
-	asm volatile ("orr r0, r0, #0x00001000");     // set bit 12 (I) I-Cache
-	asm volatile ("mcr p15, 0, r0, c1, c0, 0");
-  
-	/* invalidate TLB */
-	asm volatile ("mov r0, #0");
-	asm volatile ("mcr p15, 0, r0, c8, c7, 0");
-
-	/* place kernel parameters in memory */
-	setup_atags(pg->ram_base, pg->ram_size, 0);
-
-	/* copy kernel into place */
-	dest = (UInt32*) (0xA0000000 + 0x8000);
-	src = (UInt32*) kernel;
-	for(i=0; i<kernel_size; i+=4) {
-		*(dest++) = *(src++);
-	}
-    // Initializing before boot
-    asm volatile ("mov r0,     #0");
-    asm volatile ("mov r1,     %0" : : "i"(835 & 0xFF));
-    asm volatile ("orr r1, r1, %0" : : "i"(835 & 0xF00));
-    
-    // ATAGs location
-    asm volatile ("mov r2,     %0" : : "i"(0xA0000000));
-    asm volatile ("add r2, r2, #0x00000100");
-    
-    // Jump to the kernel.
-    asm volatile ("mov r3,     #0x00008000");
-    asm volatile ("orr r3, r3, %0": : "i"(0xA0000000));
-    asm volatile ("mov pc, r3");
-
-
-#if 0
-    asm volatile ("mov r0,     #0");
-    asm volatile ("mov r1,     %0" : : "i"(835 & 0xff));
-    asm volatile ("orr r1, r1, %0" : : "i"(835 & 0xF00));
-
-    // ATAGs location
-    asm volatile ("mov r2,     %0" : : "i"(0xA0000000));
-    asm volatile ("add r2, r2, #0x00000100");
-
-    // Jump to the kernel.
-    asm volatile ("mov r3,     #0x00008000");
-    asm volatile ("orr r3, r3, %0": : "i"(0XA0000000));
-    asm volatile ("mov pc, r3");
-#endif
-    
-	
-#if 0
-	// Initializing before boot
-	asm volatile ("mov r0,   #0\n"
-			"mov r1, %0\n" /* mach */
-			"mov r2,   %1\n"
-			"add r2, r2, #0x00000100\n" /* atags */ 
-			/* jump to kernel */
-			"mov r3,   #0x00008000\n"
-			"orr r3, r3, %1\n"
-			"mov pc, r3"
-				: : "r"(pg->mach_num), "r"(pg->ram_base) : "r0", "r1", "r2", "r3");
-#endif
-
-	*(UInt32*)0x41300004 |= 0x3;
-	while (1) {
-		*(UInt32*)0x41300004 ^= 0x3;
-		for(i=0 ; i<40000000 ; i++);
-	}
-	
-	
-
-	irq_on();
-	return ret;
-}
 
 #if 1
 
@@ -375,14 +194,15 @@ UInt32 fb_test(ArmGlobals *g)
 	UInt16 i=0;
 	UInt16 *j=0;
 	irq_off();
-
+	/*
 	for(i=0; i<0xff; i++) {
 		alldead = 1;
 		for(j = fb_base; (void*)j < fb_end; j++) {
 			*j = ((UInt16)(UInt32)j) + i;		
 		}
 		if(alldead) break;
-	}
+	}*/
+	*((UInt32*)phys_to_virt(g, LCCR3)) = 0x4700002;
 
 	irq_on();
 	return 0;

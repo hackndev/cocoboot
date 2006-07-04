@@ -6,7 +6,7 @@ install: cocoboot.prc
 	pilot-xfer -p /dev/tts/USB0 -i cocoboot.prc
 
 cocoboot.prc: arm-objs m68k-objs gui iTbl.bin
-	build-prc -n Cocoboot -c ARML $(EXECS) *.bin
+	build-prc -n Cocoboot -c CcBt $(EXECS) *.bin
 
 arm-objs:
 	make -C arm

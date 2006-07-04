@@ -9,7 +9,12 @@
 #define LCCR4 0x44000010
 #define LCCR5 0x44000014
 
+#define LCSR  0x44000038
+
 #define FDADR0 0x44000200
+
+/* Interrupt controller registers */
+#define ICMR 0x40d00004
 
 /* DMA descriptor offsets */
 #define DMA_DESC 0x0 /* address of next descriptor */
