@@ -28,6 +28,7 @@ def main():
     i = 0
     num = 0
     for fn in files:
+    	if not os.path.isfile(os.path.join(DIR, fn)): continue
         end, size = chunk(os.path.join(DIR, fn), i)
 	print i,end, fn
         table.write(struct.pack('>iiI1s31s', i, end, size, '/', fn))
