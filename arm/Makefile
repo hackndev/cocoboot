@@ -1,5 +1,5 @@
 CC = arm-palmos-gcc
-CFLAGS = -Wall -palmos5.0R3 -O -s -I../include
+CFLAGS = -Wall -O -s -I../include
 LDFLAGS = -nostartfiles
 OBJS = arm.o atag.o boot.o
 
