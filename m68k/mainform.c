@@ -213,7 +213,7 @@ void boot_linux()
 		if(!use_initrd || initrd_size) {
 			cmdline = read_command_line();
 
-			PrefSetAppPreferences ('CcBt', 1, 0, cmdline, 256, true);
+			//PrefSetAppPreferences ('CcBt', 1, 0, cmdline, 256, true);
 			//lprintf("Fare thee well 68k world!\n");
 
 			arm_globals.mach_num = read_mach_id();
@@ -301,8 +301,8 @@ Boolean mainform_event(EventPtr event)
 		cmdline_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, CommandLine));
 	        cmdline_th = MemHandleNew(size);
 	        cmdline_tp = MemHandleLock(cmdline_th);
-		StrCopy(cmdline_tp, " "); /* default value */
-		PrefGetAppPreferences ('CcBt', 1, cmdline_tp, &size, true);
+		StrCopy(cmdline_tp, "init=/linuxrc"); /* default value */
+		//PrefGetAppPreferences ('CcBt', 1, cmdline_tp, &size, true);
 		MemHandleUnlock(cmdline_th);
 		FldSetTextHandle(cmdline_p, cmdline_th);
 		
