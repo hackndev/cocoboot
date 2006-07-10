@@ -135,7 +135,7 @@ static void setup_core_tag(struct atag **params, void * address,long pagesize)
 
 	(*params)->u.core.flags = 1;               /* ensure read-only */
 	(*params)->u.core.pagesize = pagesize;     /* systems pagesize (4k) */
-	(*params)->u.core.rootdev = 0;             /* zero root device (typicaly overidden from commandline )*/
+	(*params)->u.core.rootdev = 0x100;      /* zero root device (typicaly overidden from commandline )*/
 
 	*params = tag_next(*params);              /* move pointer to next tag */
 }
@@ -200,12 +200,18 @@ setup_end_tag(struct atag **params)
 	(*params)->hdr.size = 0;                   /* zero length */
 }
 
-void setup_atags(UInt32 tag_base, UInt32 ram_base, UInt32 ram_size, const char *cmd_line)
+void setup_atags(UInt32 tag_base, UInt32 ram_base, UInt32 ram_size, const char *cmd_line, 
+		UInt32 initrd_base, UInt32 initrd_size)
 {
 	struct atag *t;
 
 	setup_core_tag(&t, (void*)(tag_base), 4096);
 	setup_mem_tag(&t, ram_base, ram_size);
 	setup_cmdline_tag(&t, cmd_line);
+
+	if (initrd_size) {
+		setup_initrd2_tag(&t, initrd_base, initrd_size);
+	}
+	
 	setup_end_tag(&t);
 }

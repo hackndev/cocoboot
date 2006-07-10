@@ -1,6 +1,9 @@
 #define	MainForm	1001
 #define	GnuGpl		1005
 #define	LogField	1006
+#define CommandLine	1007
+#define MachIdField	1008
+#define MachNameField	1009
 
 #define MainFormMenu    1000
 

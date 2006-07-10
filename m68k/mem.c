@@ -34,6 +34,10 @@ UInt32 get_ram_base()
 			return 0xa0000000;
 		}
 	} else if ((cpu & CPU_VENDOR_MASK) == CPUV_ARM) {
+		/* Motorola / Freescale i.MX */
+	        if ((cpu & CPU_MODEL_MASK) == CPU_920T) {
+			return 0x08000000;
+		}
 		return 0x0;
 	}
 	return 0;

@@ -14,7 +14,8 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 		  void *initrd, UInt32 initrd_size, char *cmdline);
 
 /* atag.c */
-void setup_atags(UInt32 tag_base, UInt32 ram_base, UInt32 ram_size, const char *cmd_line);
+void setup_atags(UInt32 tag_base, UInt32 ram_base, UInt32 ram_size, const char *cmd_line, 
+		UInt32 initrd_base, UInt32 initrd_size);
 
 
 /* Disable IRQ and FIQ */

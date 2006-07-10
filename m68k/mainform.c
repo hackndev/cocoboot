@@ -7,6 +7,8 @@
 #include "regs.h"
 #include "imgloader.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <DataMgr.h>
 
 UInt32 reg(UInt32 addr);
@@ -25,7 +27,7 @@ UInt32 reg(UInt32 phys) {
 /* write a value to the given physical address */
 void set_reg(UInt32 phys, UInt32 val) {
 	UInt32 *addr = (UInt32*)phys_to_virt(phys);
-	if(!addr) return 0;
+	if(!addr) return;
 	*addr = EndianSwap32(val);
 }
 
@@ -71,7 +73,7 @@ void lcd_test()
 {
 	char msg[255];
 	UInt32 ret;
-	UInt32 i, lccr0;
+	//UInt32 i, lccr0;
 	
 	//lccr0 = reg(LCCR0);
 	
@@ -141,7 +143,7 @@ void mem_info()
 UInt32 load_parts(int n, char *name, void **image)
 {
 	/* more ugly code... */
-	Err err;
+	Err err=0;
 	char loc[32];
 	UInt32 size = 1000;
 	Int32 vol, bytes;
@@ -170,12 +172,38 @@ UInt32 load_parts(int n, char *name, void **image)
 	return 0;
 }
 
+UInt32 read_mach_id()
+{
+	FormPtr form = FrmGetActiveForm();
+	UInt32 num;
+	FieldPtr id_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, MachIdField));
+	MemHandle id_h = FldGetTextHandle(id_p);
+	char *id = MemHandleLock(id_h);
+	num = atoi(id);
+	MemHandleUnlock(id_h);
+	return num;
+}
+
+char *read_command_line()
+{
+	FormPtr form = FrmGetActiveForm();
+	FieldPtr id_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, CommandLine));
+	MemHandle id_h = FldGetTextHandle(id_p);
+	char *cmdline;
+	if (!id_h) return "root=bug1";
+	cmdline = MemHandleLock(id_h);
+	if (!cmdline) return "root=bug2";
+	return cmdline;
+}
+
 void boot_linux()
 {
 	void *kernel=NULL, *initrd=NULL;
 	UInt32 kernel_size=0, initrd_size=0;
 	UInt32 ret;
+	char *cmdline;
 
+		
 	kernel_size = load_parts(0, "/zImage", &kernel);
 	if(kernel_size) {
 		if(use_initrd) {
@@ -183,10 +211,14 @@ void boot_linux()
 		}
 
 		if(!use_initrd || initrd_size) {
-			
-			//lprintf("Farewell 68k world!\n");
+			cmdline = read_command_line();
 
-			push_uint32(arm_stack, (UInt32)"init=/linuxrc root=/dev/boom");
+			PrefSetAppPreferences ('CcBt', 1, 0, cmdline, 256, true);
+			//lprintf("Fare thee well 68k world!\n");
+
+			arm_globals.mach_num = read_mach_id();
+			
+			push_uint32(arm_stack, (UInt32)cmdline);
 			push_uint32(arm_stack, initrd_size);
 			push_uint32(arm_stack, (UInt32)initrd);
 			push_uint32(arm_stack, kernel_size);
@@ -239,16 +271,45 @@ int check_image(char *name)
 	return 0;
 }
 
+void display_mach(FormPtr form)
+{
+	char id[8];
+	FieldPtr id_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, MachIdField));
+	FieldPtr name_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, MachNameField));
+
+	sprintf(id, "%ld", get_linux_mach_id());
+	SetFieldTextFromStr(id_p, id, true);
+	SetFieldTextFromStr(name_p, get_mach_name(), true);
+}
+
+
+
 Boolean mainform_event(EventPtr event)
 {
 	Boolean handled = false;
 	FormPtr form = NULL;
+	FieldPtr cmdline_p;
+	MemHandle cmdline_th;
+	char *cmdline_tp;
+	UInt16 size;
 
 	if (event->eType == frmOpenEvent) {
 		form = FrmGetActiveForm();
+
+		/* setup command line buffer */
+		size = 256;
+		cmdline_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, CommandLine));
+	        cmdline_th = MemHandleNew(size);
+	        cmdline_tp = MemHandleLock(cmdline_th);
+		StrCopy(cmdline_tp, " "); /* default value */
+		PrefGetAppPreferences ('CcBt', 1, cmdline_tp, &size, true);
+		MemHandleUnlock(cmdline_th);
+		FldSetTextHandle(cmdline_p, cmdline_th);
+		
+		display_mach(form);
 		FrmDrawForm(form);
 		handled = true;
-
+		
 		kernel_ok = check_image("/zImage");
 		use_initrd = check_image("/initrd.gz");
 

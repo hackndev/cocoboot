@@ -34,6 +34,11 @@ ArmStack arm_stack[20];
 ArmGlobals arm_globals;
 FormPtr mainform;
 
+/* A couple of these functions are originally from GaruxNG:
+ * GaruxNG is Copyright (C) 2006 SCL (scl@hexview.com)
+ *
+ * FIXME: But doesn't this leave memory leaks?
+ */
 void SetFieldTextFromStr(FieldPtr fldP, char *strP, Boolean redraw)
 {
 	MemHandle oldTxtH;
