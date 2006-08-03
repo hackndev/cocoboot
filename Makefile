@@ -1,5 +1,13 @@
 EXECS = m68k/cocoboot.m68k arm/cocoboot.arm
 
+# For Treo650 support, until I make it run-time conditional,
+# uncomment this:
+#DEFINES=-DTREO650
+
+default:
+	${MAKE} clean
+	${MAKE} cocoboot.prc
+
 all: cocoboot.prc
 
 install: cocoboot.prc
@@ -9,10 +17,10 @@ cocoboot.prc: arm-objs m68k-objs gui iTbl.bin
 	build-prc -n Cocoboot -c CcBt $(EXECS) *.bin
 
 arm-objs:
-	make -C arm
+	make -C arm DEFINES=${DEFINES}
 
 m68k-objs:
-	make -C m68k
+	make -C m68k DEFINES=${DEFINES}
 
 iTbl.bin: #images/*
 	tools/chunkimages.py

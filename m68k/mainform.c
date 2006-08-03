@@ -216,7 +216,24 @@ void boot_linux()
 			//PrefSetAppPreferences ('CcBt', 1, 0, cmdline, 256, true);
 			//lprintf("Fare thee well 68k world!\n");
 
-			arm_globals.mach_num = read_mach_id();
+			arm_globals.mach_num = EndianFix32(read_mach_id());
+
+#ifdef TREO650
+			{
+				extern void *MemGluePtrNew(UInt32);
+				void *ttb=NULL;
+				UInt32 ttb_aligned;
+
+				ret=65536UL;
+				ttb=MemGluePtrNew(ret);
+
+				ttb_aligned=(UInt32)ttb;
+				ttb_aligned+=(UInt32) 16383;
+				ttb_aligned&=~(UInt32) 16383;
+
+				arm_globals.new_vttb = EndianFix32(ttb_aligned);
+			}
+#endif
 			
 			push_uint32(arm_stack, (UInt32)cmdline);
 			push_uint32(arm_stack, initrd_size);
@@ -224,15 +241,27 @@ void boot_linux()
 			push_uint32(arm_stack, kernel_size);
 			push_uint32(arm_stack, (UInt32)kernel);
 
+
 			ret = call_arm(arm_stack, ARM_boot_linux);
 
 			/* we're back?! Boot must have failed. */
 			lprintf("Returned: %lx\n", ret);
 
-			FtrPtrFree(CREATOR_ID, FEATURE_NUM);
+#if 0
+			{
+			char msg[1024];
+			sprintf(msg, "0x%08lx, 0x%08lx, 0x%08lx", ret,(UInt32) ttb, ttb_aligned);
+			FrmCustomAlert(InfoAlert, "result:", msg, " ");
+			}
+#endif
+
 		}
-		FtrPtrFree(CREATOR_ID, FEATURE_NUM + 1);
+		if (initrd_size) 
+			FtrPtrFree(CREATOR_ID, FEATURE_NUM + 1);
 	}
+
+	if (kernel_size) 
+		FtrPtrFree(CREATOR_ID, FEATURE_NUM);
 	//lprintf("Boot aborted.\n");
 }
 

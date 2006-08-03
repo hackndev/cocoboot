@@ -26,6 +26,9 @@ typedef struct {
 	UInt32 pttb;
 	UInt32 vttb;
 
+	UInt32 new_vttb;
+	UInt32 new_pttb;
+
 	UInt32 cpu;
 
 	UInt32 ram_base;

@@ -21,9 +21,16 @@
 #include "regs.h"
 #include "cpu.h"
 
+#ifdef TREO650 
+#define KERNEL_OFFSET	0x0800000
+#define TAG_OFFSET	0x100
+#define INITRD_OFFSET	0x1500000
+#else
 #define KERNEL_OFFSET	0x8000
 #define TAG_OFFSET	0x100
 #define INITRD_OFFSET	0x0400000
+#endif
+
 
 static void jump_to_kernel(UInt32 kernel_base, UInt32 tag_base, UInt32 mach)
 {
@@ -52,10 +59,12 @@ static void disable_mmu()
 	asm volatile ("bic r0, r0, #0x00000087");     // clear bits 7, 2:0 (B--- -CAM)
 	asm volatile ("orr r0, r0, #0x00001000");     // set bit 12 (I) I-Cache
 	asm volatile ("mcr p15, 0, r0, c1, c0, 0");
+	CPWAIT
   
 	/* invalidate TLB */
 	asm volatile ("mov r0, #0");
 	asm volatile ("mcr p15, 0, r0, c8, c7, 0");
+	CPWAIT
 }
 
 static void copy_image(UInt32 *dest, UInt32 *src, UInt32 size)
@@ -66,6 +75,14 @@ static void copy_image(UInt32 *dest, UInt32 *src, UInt32 size)
 		*(dest++) = *(src++);
 	}
 }
+
+static void map_lcd(void)
+{
+#define reg(a) (*(UInt32 *)(a))
+	 reg( reg(FDADR0) + DMA_SRC)=0xa1d68000;
+#undef reg
+}
+
 
 UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 		  void *initrd, UInt32 initrd_size, char *cmdline)
@@ -84,6 +101,11 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 
 	kernel = (void *)virt_to_phys(g, (UInt32) kernel);
 	cmdline = (char *)virt_to_phys(g, (UInt32) cmdline);
+
+#ifdef TREO650
+	g->new_pttb=virt_to_phys(g,g->new_vttb);
+#endif
+
 	if(initrd)
 		initrd = (void *)virt_to_phys(g, (UInt32) initrd);
 	pg = (void *)virt_to_phys(g, (UInt32) g);
@@ -109,22 +131,36 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	/* From here on, if we're interrupted, PalmOS will hang us! 
 	 * Lock the door! What it won't know, won't hurt it.
 	 */
+
 	irq_off();	
+
+#ifdef TREO650
+	copy_map_and_switch(g);
+#endif
 
 	/* Map the page containing pphys_jump to identity */
 	map(g, (UInt32)pphys_jump, (UInt32)pphys_jump);
 
 	/* make sure the mapping worked */
 	if(*(UInt32*)(vphys_jump) != *(UInt32*)(pphys_jump)) {
+#ifdef TREO650
+		restore_map(g);
+#endif
 		irq_on();
 		return 0xc01d;
 	}
-	
+
+
+	/*JMM - FIXME FIXME FIXME something corrupts g->mach_num in this */
+	/*Damned if i can find out what it is - stick it in r2 for the moment */
+
 	/* save physical stack pointer and make the jump to physical addresss
 	 * space
 	 */
-	asm volatile ("mov r0, %0\n"
-	              "mov pc, %1" : : "r"(pstack), "r"(pphys_jump) : "r0");
+	asm volatile ("mov r2, %0" : : "r"(g->mach_num): "r2");
+
+	asm volatile ("mov r3, %0\n"
+	              "mov pc, %1" : : "r"(pstack), "r"(pphys_jump) : "r3");
 
 	/* something's gone wrong! (I've included the if to make sure the compiler
 	 * still generates the rest of the function
@@ -135,17 +171,31 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	
 	/*** From this point on we're running at our physical address ***/
 	asm volatile ("phys_jump_label: nop\n"
-			"mov sp, r0" 		/* setup physical stack pointer */
+			"mov sp, r3" 		/* setup physical stack pointer */
 			);
+
+	/*pg isn't working until we shutdown the mmu - why?*/
+	{
+	UInt32 a;
+	asm volatile ("mov %0, r2" : "=r"(a));
 
 	/* now we're quite safe to shut off the MMU */
 	disable_mmu();
-	
+
+	pg->mach_num=a;
+	}
+
+
+	map_lcd();
+#ifdef TREO650
+	setup_treo650_cpu();
+#else
 	/* do CPU-specific configuration (like interrupt masking) */
-	if (g->cpu & CPUV_INTEL) {
+	if (pg->cpu & CPUV_INTEL) {
 		setup_xscale();
 	}
-	
+#endif
+
 	/* place kernel parameters in memory */
 	setup_atags(pg->ram_base + TAG_OFFSET, pg->ram_base, pg->ram_size, cmdline,
 			pg->ram_base + INITRD_OFFSET, initrd_size);
@@ -157,7 +207,7 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	if (initrd) {
 		copy_image((void*)(pg->ram_base + INITRD_OFFSET), initrd, initrd_size);
 	}
-	
+
 	/* bring on the penguin! */
 	jump_to_kernel(pg->ram_base + KERNEL_OFFSET, pg->ram_base + TAG_OFFSET, pg->mach_num);
 
