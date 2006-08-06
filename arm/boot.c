@@ -45,12 +45,6 @@ static void jump_to_kernel(UInt32 kernel_base, UInt32 tag_base, UInt32 mach)
 	/* never returns */
 }
 
-static void setup_xscale()
-{
-	/* mask all interrupts */
-	*((UInt32*)ICMR) = 0;
-}
-
 static void disable_mmu()
 {
 	/* disable mmu and data cache */
@@ -185,14 +179,15 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	pg->mach_num=a;
 	}
 
-
+#ifdef MOVE_FRAMEBUFFER
 	map_lcd();
+#endif
 #ifdef TREO650
 	setup_treo650_cpu();
 #else
 	/* do CPU-specific configuration (like interrupt masking) */
 	if (pg->cpu & CPUV_INTEL) {
-		setup_xscale();
+		setup_xscale_cpu();
 	}
 #endif
 

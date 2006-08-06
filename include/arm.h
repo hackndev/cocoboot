@@ -19,6 +19,7 @@ void restore_map(ArmGlobals *g);
 /*cpu.c*/
 void setup_treo650_cpu(void);
 #endif
+void setup_xscale_cpu(void);
 
 /* boot.c */
 UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,

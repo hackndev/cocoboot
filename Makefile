@@ -3,6 +3,7 @@ EXECS = m68k/cocoboot.m68k arm/cocoboot.arm
 # For Treo650 support, until I make it run-time conditional,
 # uncomment this:
 #DEFINES=-DTREO650
+#DEFINES=-DMOVE_FRAMEBUFFER
 
 default:
 	${MAKE} clean
