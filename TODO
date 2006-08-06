@@ -1,0 +1,3 @@
+- Load kernel from an external pdb.
+- Fix compiled in kernel loading.
+- Add a nice pretty startup animation, progress bar etc.
