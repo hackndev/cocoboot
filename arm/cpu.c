@@ -5,6 +5,7 @@
 
 #define GCR             __REG(0x4050000C)  /* Global Control Register */
 #define GCR_ACLINK_OFF  (1 << 3)        /* AC-link Shut Off */
+#define GCR_PRIRDY_IEN  (1 << 8)        /* Primary Ready Interrupt Enable */
 
 #define ICMR            __REG(0x40D00004)  /* Interrupt Controller Mask Register */
 #define ICLR            __REG(0x40D00008)  /* Interrupt Controller Level Register */
@@ -25,7 +26,8 @@
 
 void setup_xscale_cpu(void)
 {
-	GCR |= ~GCR_ACLINK_OFF;       // shut off the AC97 audio controlller
+	GCR |= GCR_ACLINK_OFF;       // shut off the AC97 audio controlller
+	GCR &= ~GCR_PRIRDY_IEN;      // mask an interrupt that causes sound driver to hang
 
 	/* mask all interrupts */
 	ICMR = 0;
