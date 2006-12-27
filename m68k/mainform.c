@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <DataMgr.h>
+#include <VFSMgr.h>
 
 UInt32 reg(UInt32 addr);
 int use_initrd;
@@ -98,6 +99,48 @@ void lcd_test()
 	sprintf(msg, "0x%08lx", ret);
 	FrmCustomAlert(InfoAlert, "LCD test result:", msg, " ");
 	
+}
+
+void dump_mmu()
+{
+	UInt16 volref; 
+	UInt32 voliter = vfsIteratorStart; 
+	FileRef file;
+	Err err = VFSVolumeEnumerate(&volref, &voliter);
+	char msg[255];
+	UInt32 addr, phys, lastphys=0xffff, lastvirt=0xffff, startphys=0xffff, startvirt=0xffff;
+
+	if (err != errNone) {
+		FrmCustomAlert(InfoAlert, "Memory card not found.", " ", " ");
+		return;
+	}
+
+	if (VFSFileOpen(volref, "/memorymap.txt", vfsModeWrite | vfsModeCreate, &file) != errNone) {
+		FrmCustomAlert(InfoAlert, "Can't open memorymap.txt for writing", " ", " ");
+		return;
+	}
+
+	addr = 0;
+	while (1) {
+		phys = virt_to_phys(addr);
+		if (phys != lastphys + 0x00100000) {
+			if (startphys && startphys!=0xffff) {
+				sprintf(msg, "%08lx-%08lx -> %08lx-%08lx\n", startvirt, lastvirt, startphys, lastphys);
+				VFSFileWrite(file, StrLen(msg), msg, NULL);
+			}
+			startphys = phys;
+			startvirt = addr;
+		}
+		lastphys = phys;
+		lastvirt = addr;
+		addr += 0x00100000;
+		if (addr >= 0xff000000) break;
+	}
+	sprintf(msg, "%08lx-%08lx -> %08lx-%08lx\n", startvirt, lastvirt, startphys, lastphys);
+	VFSFileWrite(file, StrLen(msg), msg, NULL);
+	VFSFileClose(file);	
+	
+	FrmCustomAlert(InfoAlert, "/memorymap.txt created", " ", " ");
 }
 
 
@@ -280,6 +323,10 @@ Boolean mainform_menu_event(Int16 id)
 	case MenuItemMem:
 		mem_info();
 		return true;
+	case MenuItemDumpMMU:
+		dump_mmu();
+		return true;
+
 	}
 	return false;
 }
@@ -330,7 +377,7 @@ Boolean mainform_event(EventPtr event)
 		cmdline_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, CommandLine));
 	        cmdline_th = MemHandleNew(size);
 	        cmdline_tp = MemHandleLock(cmdline_th);
-		StrCopy(cmdline_tp, "init=/linuxrc"); /* default value */
+		StrCopy(cmdline_tp, "init=/linuxrc root=/dev/mmcblk0p2"); /* default value */
 		//PrefGetAppPreferences ('CcBt', 1, cmdline_tp, &size, true);
 		MemHandleUnlock(cmdline_th);
 		FldSetTextHandle(cmdline_p, cmdline_th);
