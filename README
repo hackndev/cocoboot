@@ -13,6 +13,12 @@ project, see AUTHORS for details.
 http://www.hackndev.com/
 
 
+Compiling:
+
+You will need prc-tools, pilrc and the Palm OS SDK installed. Then simply
+use "make" to build. You might need to adjust the paths in the Makefile
+if your SDK is in a non-standard place.
+
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
