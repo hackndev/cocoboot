@@ -21,16 +21,20 @@
 #include "regs.h"
 #include "cpu.h"
 
+#define MACH_TYPE_T3XSCALE	829
+
 #ifdef TREO650 
-#define KERNEL_OFFSET	0x0800000
-#define TAG_OFFSET	0x100
-#define INITRD_OFFSET	0x1500000
+#define KERNEL_OFFSET		0x0800000
+#define TAG_OFFSET		0x100
+#define INITRD_OFFSET		0x1500000
 #else
-#define KERNEL_OFFSET	0x8000
-#define TAG_OFFSET	0x100
-#define INITRD_OFFSET	0x0400000
+#define KERNEL_OFFSET		0x8000
+#define TAG_OFFSET		0x100
+#define INITRD_OFFSET		0x0400000
 #endif
 
+#define T3_KERNEL_OFFSET	0x0800000
+#define T3_INITRD_OFFSET	0x1500000
 
 static void jump_to_kernel(UInt32 kernel_base, UInt32 tag_base, UInt32 mach)
 {
@@ -88,6 +92,8 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	if(!kernel || !cmdline) {
 		return 0xc0ffee;
 	}
+	UInt32 kernel_offset;
+	UInt32 initrd_offset;
 
 	/* since we're going to turn off the MMU, we need to translate
 	 *  all out pointers to physical addresses.
@@ -191,20 +197,28 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	}
 #endif
 
+	if (pg->mach_num==MACH_TYPE_T3XSCALE){
+	    kernel_offset=T3_KERNEL_OFFSET;
+	    initrd_offset=T3_INITRD_OFFSET;
+	} else {
+	    kernel_offset=KERNEL_OFFSET;
+	    initrd_offset=INITRD_OFFSET;
+	}
+	
 	/* place kernel parameters in memory */
 	setup_atags(pg->ram_base + TAG_OFFSET, pg->ram_base, pg->ram_size, cmdline,
-			pg->ram_base + INITRD_OFFSET, initrd_size);
+		    pg->ram_base + initrd_offset, initrd_size);
 
 	/* copy kernel into place */
-	copy_image((void*)(pg->ram_base + KERNEL_OFFSET), kernel, kernel_size);
+	copy_image((void*)(pg->ram_base + kernel_offset), kernel, kernel_size);
 	
 	/* copy initrd into place */
 	if (initrd) {
-		copy_image((void*)(pg->ram_base + INITRD_OFFSET), initrd, initrd_size);
+	    copy_image((void*)(pg->ram_base + initrd_offset), initrd, initrd_size);
 	}
 
 	/* bring on the penguin! */
-	jump_to_kernel(pg->ram_base + KERNEL_OFFSET, pg->ram_base + TAG_OFFSET, pg->mach_num);
+	jump_to_kernel(pg->ram_base + kernel_offset, pg->ram_base + TAG_OFFSET, pg->mach_num);
 
 	return 0xe4;	/* sadly, this return will never be executed */
 }
