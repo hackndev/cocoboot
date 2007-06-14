@@ -170,7 +170,7 @@ void mem_info()
 {
 	char msg[255];
 
-	sprintf(msg, "  RAM base: 9x%lx\n"
+	sprintf(msg, "  RAM base: 0x%lx\n"
 		"  Size: %ldmb (0x%lx)\n"
 		"  Phys TTB: 0x%lx\n"
 		"  Virt TTB: 0x%lx",
