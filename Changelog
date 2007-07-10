@@ -1,3 +1,5 @@
+  - Added simple USB console.
+
 version 0.2: 
   - Fixed booting on Palm T|T3 (Marek Vasut)
 

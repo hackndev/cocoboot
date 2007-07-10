@@ -67,6 +67,12 @@ void lcd_info()
 
 }
 
+void usb_console(void)
+{
+	open_console();
+	FrmCustomAlert(InfoAlert, "USB Console is now enabled.", "Connect to /dev/ttyUSBn on PC.", " ");
+}
+
 #define LCCR0_LDM (1<<3)
 #define LCCR0_DIS (1<<10)
 
@@ -326,7 +332,9 @@ Boolean mainform_menu_event(Int16 id)
 	case MenuItemDumpMMU:
 		dump_mmu();
 		return true;
-
+	case MenuItemConsole:
+		usb_console();
+		return true;
 	}
 	return false;
 }

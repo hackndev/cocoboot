@@ -21,6 +21,7 @@
 #include <MemoryMgr.h>
 //#include <string.h>
 #include <stdio.h>
+#include <string.h>
 #include <VFSMgr.h>
 
 #include "cocoboot.h"
@@ -33,6 +34,9 @@
 ArmStack arm_stack[20];
 ArmGlobals arm_globals;
 FormPtr mainform;
+UInt16 usb_port;
+char console_buffer[128];
+int console_buffer_fill=0;
 
 /* A couple of these functions are originally from GaruxNG:
  * GaruxNG is Copyright (C) 2006 SCL (scl@hexview.com)
@@ -158,15 +162,136 @@ UInt32 call_arm(ArmStack * stack, UInt32 func)
 	return ret;
 }
 
+void sendf(const char *template, ...)
+{
+	char buf[2048];
+	Err err;
+
+	va_list ap;
+
+	va_start(ap, template);
+	vsprintf(buf, template, ap);
+	va_end(ap);
+
+	if (usb_port)
+		SrmSend(usb_port, buf, strlen(buf), &err);
+}
+
+
+void open_console(void) {
+	char *ready_text = "[Cocoboot ready]\r\n";
+	Err err;
+
+	/* open USB serial port */
+	usb_port = 0;
+	console_buffer_fill = 0;
+	SrmOpen(serPortCradleUSBPort, 115200, &usb_port);
+	if (usb_port) {
+		SrmSend(usb_port, ready_text, strlen(ready_text), &err);
+		sendf("Cocoboot> ");
+		SrmSendFlush(usb_port);
+	}
+}
+
+void close_console()
+{
+	Err err;
+	char *exit_text = "[Cocoboot exiting]\r\n";
+	if (usb_port) {
+		SrmSend(usb_port, exit_text, strlen(exit_text), &err),
+		SrmClose(usb_port);
+		usb_port = 0;
+	}
+}
+
+void console_help(void)
+{
+	sendf("Available commands:\r\n");
+	sendf("  exit            close the console\r\n");
+	sendf("  help            show this help\r\n");
+	sendf("  ping [text]     reply with pong text\r\n");
+}
+
+/* index(3) - locate character in string */
+char *index(const char *s, int c)
+{
+	while (*s) {
+		if(*s == c) return s;
+		s++;
+	}
+	return NULL;
+}
+
+void handle_command(char *cmd)
+{
+	char *args = index(cmd, ' ');
+	if (args) {
+		*(args++) = 0;
+	} else {
+		args = cmd + strlen(cmd);
+	}
+
+	if (!strcmp(cmd, "ping")) {
+		sendf("pong %s\r\n", args);
+	} else if (!strcmp(cmd, "help")) {
+		console_help();
+	} else if (!strcmp(cmd, "exit")) {
+		close_console();
+	} else {
+		sendf("Unknown command '%s'. Type 'help' for help.\r\n", cmd);
+	}
+	sendf("Cocoboot> ");
+}
+
+void handle_console(void)
+{
+	Err err;
+	UInt32 bytes = 0;
+	int i;
+
+	SrmReceiveCheck(usb_port, &bytes);
+	if (!bytes) return;
+
+	if (bytes > sizeof(console_buffer))
+		bytes = sizeof(console_buffer);
+
+	/* new data is available, grab it and echo it! */
+	bytes = SrmReceive(usb_port, console_buffer + console_buffer_fill, bytes, 1000, &err);
+	SrmSend(usb_port, console_buffer + console_buffer_fill, bytes, &err);
+	SrmSendFlush(usb_port);
+	console_buffer_fill += bytes;
+
+	EvtResetAutoOffTimer();
+
+	/* do we have a full command? */
+	for (i=0; i < console_buffer_fill; i++) {
+		if (console_buffer[i] == '\r' || console_buffer[i] == '\n') {
+			sendf("\n");
+			/* yes! process it */
+			console_buffer[i] = 0;
+			if (i+1 < console_buffer_fill && console_buffer[i+1] == '\n')
+				console_buffer[++i] = 0;
+			handle_command(console_buffer);
+
+			/* pop the command off */
+			i++;
+			memmove(console_buffer, console_buffer + i, console_buffer_fill - i);
+			console_buffer_fill -= i;
+			i = 0;
+		}
+	}
+}
+
 void event_loop()
 {
 	EventType event;
 	UInt16 err;
 	FormPtr form;
 	Int16 form_id;
+	int delay=200;
 
 	do {
-		EvtGetEvent(&event, 200);
+		EvtGetEvent(&event, delay);
 
 		if (SysHandleEvent(&event))
 			continue;
@@ -186,12 +311,18 @@ void event_loop()
 			FrmDrawForm(FrmGetActiveForm());
 		}
 
+		if (usb_port) {
+			handle_console();
+			delay = 10;
+		}
+
 		FrmDispatchEvent(&event);
 	} while (event.eType != appStopEvent);
 }
 
 UInt16 start_app()
 {
+
 	arm_stack[0] = 0;
 	FrmGotoForm(MainForm);
 
@@ -201,6 +332,7 @@ UInt16 start_app()
 
 void stop_app()
 {
+	close_console();
 }
 
 UInt32 PilotMain(UInt16 launch_code, MemPtr cmd_PBP, UInt16 launch_flags)

@@ -25,8 +25,11 @@ BEGIN
 		MENUITEM "Memory" MenuItemMem
 		MENUITEM "LCD registers (PXA only)" MenuItemLCD
 		MENUITEM "LCD test (PXA only)" MenuItemLCDTest
-		MENUITEM "Boot Linux" MenuItemBootLinux
 		MENUITEM "Dump MMU" MenuItemDumpMMU
+	END
+	PULLDOWN "Tools"
+	BEGIN
+		MENUITEM "USB Console" MenuItemConsole
 	END
 END
 

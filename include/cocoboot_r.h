@@ -15,6 +15,7 @@
 #define MenuItemLCDTest 1003
 #define MenuItemBootLinux 1004
 #define MenuItemDumpMMU 1005
+#define MenuItemConsole 1006
 
 #define ErrorAlert      1000
 #define InfoAlert       1001
