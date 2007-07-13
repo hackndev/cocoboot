@@ -19,6 +19,18 @@ You will need prc-tools, pilrc and the Palm OS SDK installed. Then simply
 use "make" to build. You might need to adjust the paths in the Makefile
 if your SDK is in a non-standard place.
 
+USB Console:
+
+Cocoboot includes a primitive USB console which you can use for dumping
+memory and other debugging pruposes.  Enable it from Cocoboot's Tools menu.
+Plug your PDA's USB into your PC, make sure you have the visor.ko kernel
+module loaded and you should see two serial ports appear as /dev/ttyUSB0
+and /dev/ttyUSB1.  Connect to /dev/ttyUSB0 using minicom with a baud rate
+of 115200 to access the console.
+
+Note: You may need to use ttyUSB1 on some devices such as the LD.
+
+License:
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -79,7 +79,7 @@ END
 
 
 
-STRING GnuGpl	"Cocoboot, PalmOS Linux loader.\n"\
+STRING GnuGpl	"Cocoboot 0.3, PalmOS Linux loader.\n"\
 		"Copyright (C) 2006\n"\
 		"\n"\
 		"www.hackndev.com\n"\
