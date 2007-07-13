@@ -264,16 +264,9 @@ UInt32 virt_to_phys(ArmGlobals *g, UInt32 virt)
                 phys = (fld & 0xfff00000) | (virt & 0x000fffff);
 	} else if ((fld & FLD_MASK) == FLD_COARSE) {
 		/* 2nd level, yuck. Here's hoping we can access it. */
-#ifdef TREO650
-		/*Treo 650 tables are in a peice of memory in a 1:1
-  		 *mapping*/
-		sld_p = (UInt32*) ( ((fld & 0xFFFFFc00) | 
-				     ((virt & 0xfF000) >> 10)));
-#else
 		sld_p = (UInt32*) ( ((fld & 0xFFFFFc00) | 
 				     ((virt & 0xfF000) >> 10))
-				    - g->ram_base);
-#endif
+				    - g->tt_offset);
 		sld = *sld_p; /* crash? */
 		if((sld & 3) == 2) {           /* small page */
 			phys = (sld & 0xFFFFF000) | (virt & 0xFFF);
@@ -285,16 +278,9 @@ UInt32 virt_to_phys(ArmGlobals *g, UInt32 virt)
         } else { 
 		/* FIXME: THIS IS WRONG!! */
 		/* 2nd level, yuck. Here's hoping we can access it. */
-#ifdef TREO650
-		/*Treo 650 tables are in a peice of memory in a 1:1
-  		 *mapping*/
-		sld_p = (UInt32*) ( ((fld & 0xFFFFF000) | 
-				     ((virt & 0xff000) >> 10)));
-#else
 		sld_p = (UInt32*) ( ((fld & 0xFFFFF000) | 
 				     ((virt & 0xff000) >> 10))
-				    - g->ram_base);
-#endif
+				    - g->tt_offset);
 		sld = *sld_p; /* crash? */
 		if((sld & 3) == 2) {           /* small page */
 			phys = (sld & 0xFFFFF000) | (virt & 0xFFF);
@@ -334,13 +320,7 @@ UInt32 phys_to_virt(ArmGlobals *g, UInt32 phys)
 
 UInt32 map_mem(ArmGlobals *g, UInt32 phys)
 {
-#ifdef TREO650
-	/*The treo650 ttb is mapped read only, so we have to modify
-	 *a copy*/
-        UInt32 *tt = (UInt32*) g->new_vttb;
-#else
         UInt32 *tt = (UInt32*) g->vttb;
-#endif
         UInt32 i, rec;
         UInt32 va;
 
@@ -363,89 +343,10 @@ UInt32 map_mem(ArmGlobals *g, UInt32 phys)
         return NULL;
 }
 
-#ifdef TREO650
-/* The treo650 ttb is in a 1:1 mapping, but cruically it's Readonly 
- * we still have access to the TTB registers though as we're in System
- * mode, so we copy the current TTB to a buffer
- * and then we can modify that, this code copies the ttb and then
- * switches the mmu to the new copy
- */
-void copy_map_and_switch(ArmGlobals *g) 
-{
-	UInt32 *src=(UInt32 *) g->vttb;
-	UInt32 *dst=(UInt32 *) g->new_vttb;
-  	UInt32 ttbr0;
-	int i;
-
-
-	for (i=0;i<4096;++i) {
-		dst[i]=src[i];
-	}
-
-	asm("mrc p15, 0, r0, c2, c0, 0\nmov %0, r0": "=r"(ttbr0): :"r0");
-	
-
-	ttbr0&=0x1fUL;
-	ttbr0|=g->new_pttb;
-
-	asm volatile (	"mov r0, %0\n"
-			"mcr p15, 0, r0, c2, c0, 0"
-			: 
-			: "r"(ttbr0)
-			: "r0" );
-	
-
-	/* invalidate TLB */
-	asm volatile ("mov r0, #0");
-	asm volatile ("mcr p15, 0, r0, c8, c7, 0");
-
-	CPWAIT
-
-
-	for(i=0; i<100000; i++);
-
-
-}
-
-/* Restore the MMU to look at the palmos TTB */
-void restore_map(ArmGlobals *g)
-{
-  	UInt32 ttbr0;
-	int i;
-
-	asm("mrc p15, 0, r0, c2, c0, 0\nmov %0, r0": "=r"(ttbr0): :"r0");
-
-	ttbr0&=0x1fUL;
-	ttbr0|=g->pttb;
-
-	asm volatile (	"mov r0, %0\n"
-			"mcr p15, 0, r0, c2, c0, 0"
-			: 
-			: "r"(ttbr0)
-			: "r0" );
-	
-
-	/* invalidate TLB */
-	asm volatile ("mov r0, #0");
-	asm volatile ("mcr p15, 0, r0, c8, c7, 0");
-
-	CPWAIT
-
-	for(i=0; i<100000; i++);
-}
-#endif
-
 void map(ArmGlobals *g, UInt32 phys, UInt32 virt)
 {
 	int i;
-#ifdef TREO650
-	/*On the treo650 use the copy of the ttb, not the real
-	 *ttb which is read only
-	 */
-	UInt32 *tt = (UInt32*) g->new_vttb;
-#else
 	UInt32 *tt = (UInt32*) g->vttb;
-#endif
 	UInt32 idx = virt >> 20;
 
 	tt[idx] = (phys & 0xFFF00000) | 0xc1a;

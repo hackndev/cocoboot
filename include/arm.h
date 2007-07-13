@@ -9,16 +9,7 @@ unsigned long read_cp(unsigned long cp, unsigned long reg);
 UInt32 virt_to_phys(ArmGlobals *g, UInt32 virt);
 void map(ArmGlobals *g, UInt32 phys, UInt32 virt);
 
-#ifdef TREO650
-void copy_map_and_switch(ArmGlobals *g);
-void restore_map(ArmGlobals *g);
-#endif
-
-
-#ifdef TREO650
 /*cpu.c*/
-void setup_treo650_cpu(void);
-#endif
 void setup_xscale_cpu(void);
 
 /* boot.c */

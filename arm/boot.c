@@ -23,17 +23,12 @@
 
 #define MACH_TYPE_T3XSCALE	829
 
-#ifdef TREO650 
-#define TAG_OFFSET		0x100
-#define INITRD_OFFSET		0x1500000
-#else
 #define TAG_OFFSET		0x100
 #define INITRD_OFFSET		0x0400000
-#endif
 
 #define T3_INITRD_OFFSET	0x1500000
 
-static void jump_to_kernel(UInt32 kernel_base, UInt32 tag_base, UInt32 mach)
+static void jump_to_kernel(void *kernel_base, UInt32 tag_base, UInt32 mach)
 {
 	asm volatile (	"mov r0, #0\n"
 			"mov r1, %0\n" /* mach id */
@@ -98,10 +93,6 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	kernel = (void *)virt_to_phys(g, (UInt32) kernel);
 	cmdline = (char *)virt_to_phys(g, (UInt32) cmdline);
 
-#ifdef TREO650
-	g->new_pttb=virt_to_phys(g,g->new_vttb);
-#endif
-
 	if(initrd)
 		initrd = (void *)virt_to_phys(g, (UInt32) initrd);
 	pg = (void *)virt_to_phys(g, (UInt32) g);
@@ -130,18 +121,14 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 
 	irq_off();	
 
-#ifdef TREO650
-	copy_map_and_switch(g);
-#endif
+	/* Disable memory protection (page table is read-only on treos) */
+	asm volatile ("mcr p15, 0, %0, c3, c3, 0" : : "r"(0xffffffff) );  
 
 	/* Map the page containing pphys_jump to identity */
 	map(g, (UInt32)pphys_jump, (UInt32)pphys_jump);
 
 	/* make sure the mapping worked */
 	if(*(UInt32*)(vphys_jump) != *(UInt32*)(pphys_jump)) {
-#ifdef TREO650
-		restore_map(g);
-#endif
 		irq_on();
 		return 0xc01d;
 	}
@@ -184,14 +171,10 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 #ifdef MOVE_FRAMEBUFFER
 	map_lcd();
 #endif
-#ifdef TREO650
-	setup_treo650_cpu();
-#else
 	/* do CPU-specific configuration (like interrupt masking) */
 	if (pg->cpu & CPUV_INTEL) {
 		setup_xscale_cpu();
 	}
-#endif
 
 	if (pg->mach_num==MACH_TYPE_T3XSCALE){
 	    initrd_offset=T3_INITRD_OFFSET;

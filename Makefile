@@ -12,7 +12,7 @@ default:
 all: cocoboot.prc
 
 install: cocoboot.prc
-	pilot-xfer -p /dev/tts/USB0 -i cocoboot.prc
+	pilot-xfer -p /dev/ttyUSB1 -i cocoboot.prc
 
 cocoboot.prc: arm-objs m68k-objs gui iTbl.bin
 	build-prc -n Cocoboot -c CcBt $(EXECS) *.bin

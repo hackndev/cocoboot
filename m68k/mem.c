@@ -81,11 +81,7 @@ UInt32 get_virt_ttb()
 	/* FIXME: Hack alert. We're making an assumption about where PalmOS maps the first part of RAM..
 	 * Is there a better way of doing this? we'll need to hardcode the value for T|T2 
 	 */
-#ifdef TREO650
-	return get_ttb();
-#else
-	return get_ttb() - get_ram_base();
-#endif
+	return get_ttb() - get_tt_offset();
 }
 
 UInt32 virt_to_phys(UInt32 virt)

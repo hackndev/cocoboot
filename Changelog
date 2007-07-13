@@ -1,3 +1,4 @@
+  - Cleaned up treo code (removed all #ifdefs)
   - Removed kernel relocation for speed and reliability (suggested by phire)
   - Added simple USB console.
 

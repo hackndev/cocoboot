@@ -16,6 +16,7 @@
  */
 
 #include <PalmOS.h>
+#include "mem.h"
 
 struct Machine {
 	UInt32 palmos_id;
@@ -80,4 +81,22 @@ char *get_mach_name()
 {
 	check_mach();
 	return mach_table[mach].name;
+}
+
+/**
+ * Offset to subtract from translation table entries.
+ * On treo's translation table is 1:1 mapped so this is zero.
+ * On other devices the translation table stuff starts at 0x0 so we
+ * subtract ram_base.
+ */
+UInt32 get_tt_offset()
+{
+	check_mach();
+	switch (mach_table[mach].linux_id) {
+	case 909:	/* Treo 650 */
+	case 1230:	/* Treo 680 */
+		return 0;
+	default:
+		return get_ram_base();
+	}
 }

@@ -26,15 +26,16 @@ typedef struct {
 	UInt32 pttb;
 	UInt32 vttb;
 
-	UInt32 new_vttb;
-	UInt32 new_pttb;
-
 	UInt32 cpu;
+
+	UInt32 tt_offset;
 
 	UInt32 ram_base;
 	UInt32 ram_size;
 
 	UInt32 mach_num;
+
+	UInt32 pad[4];
 } ArmGlobals;
 
 void push_uint32(ArmStack *stack, UInt32 n);
