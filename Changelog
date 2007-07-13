@@ -1,4 +1,4 @@
-  - Changed kernel load address from 0x4000 to 0x800000.
+  - Removed kernel relocation for speed and reliability (suggested by phire)
   - Added simple USB console.
 
 version 0.2: 

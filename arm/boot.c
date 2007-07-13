@@ -31,7 +31,6 @@
 #define INITRD_OFFSET		0x0400000
 #endif
 
-#define KERNEL_OFFSET		0x0800000
 #define T3_INITRD_OFFSET	0x1500000
 
 static void jump_to_kernel(UInt32 kernel_base, UInt32 tag_base, UInt32 mach)
@@ -90,7 +89,6 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	if(!kernel || !cmdline) {
 		return 0xc0ffee;
 	}
-	UInt32 kernel_offset;
 	UInt32 initrd_offset;
 
 	/* since we're going to turn off the MMU, we need to translate
@@ -195,7 +193,6 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	}
 #endif
 
-	kernel_offset=KERNEL_OFFSET;
 	if (pg->mach_num==MACH_TYPE_T3XSCALE){
 	    initrd_offset=T3_INITRD_OFFSET;
 	} else {
@@ -206,16 +203,13 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	setup_atags(pg->ram_base + TAG_OFFSET, pg->ram_base, pg->ram_size, cmdline,
 		    pg->ram_base + initrd_offset, initrd_size);
 
-	/* copy kernel into place */
-	copy_image((void*)(pg->ram_base + kernel_offset), kernel, kernel_size);
-	
 	/* copy initrd into place */
 	if (initrd) {
 	    copy_image((void*)(pg->ram_base + initrd_offset), initrd, initrd_size);
 	}
 
 	/* bring on the penguin! */
-	jump_to_kernel(pg->ram_base + kernel_offset, pg->ram_base + TAG_OFFSET, pg->mach_num);
+	jump_to_kernel(kernel, pg->ram_base + TAG_OFFSET, pg->mach_num);
 
 	return 0xe4;	/* sadly, this return will never be executed */
 }
