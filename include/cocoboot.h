@@ -8,6 +8,7 @@ extern ArmStack arm_stack[];
 extern ArmGlobals arm_globals;
 
 void lprintf (const char *template, ...);
+void log_clear(void);
 UInt32 call_arm(ArmStack *stack, UInt32 func);
 
 UInt32 get_tt_offset();

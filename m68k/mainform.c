@@ -195,14 +195,31 @@ UInt32 load_parts(int n, char *name, void **image)
 	Err err=0;
 	char loc[32];
 	UInt32 size = 1000;
+	UInt32 ftr_size;
 	Int32 vol, bytes;
 
 	lprintf("Loading %s... ", name);
 	vol = search_image(name, loc, sizeof(loc), &size);
 	if(vol < -1) goto out;
-	
-	if((err=FtrPtrNew (CREATOR_ID, FEATURE_NUM + n, size, image))) {
-		lprintf("FtrPtrNew ");
+
+	ftr_size = size;
+	while (ftr_size) {
+		if(!(err=FtrPtrNew (CREATOR_ID, FEATURE_NUM + n, ftr_size, image))) {
+			break;
+		}
+
+		if (ftr_size == size) {
+			lprintf("alloc error, trying overwrite ram. ");
+		}
+
+		if (ftr_size < 102400)
+			ftr_size = 0;
+		else
+			ftr_size -= 102400;
+	}
+
+	if (!ftr_size) {
+		lprintf("Gave up. Boot ");
 		goto out;
 	}
 	
@@ -252,7 +269,7 @@ void boot_linux()
 	UInt32 ret;
 	char *cmdline;
 
-		
+	log_clear();	
 	kernel_size = load_parts(0, "/zImage", &kernel);
 	if(kernel_size) {
 		if(use_initrd) {

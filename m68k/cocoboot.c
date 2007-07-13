@@ -94,6 +94,14 @@ void log_write(char *str)
 	}
 }
 
+void log_clear(void)
+{
+	char buf[16];
+	FieldPtr fldP = FrmGetObjectPtr(mainform, FrmGetObjectIndex(mainform, LogField));
+	buf[0] = 0;
+	SetFieldTextFromStr(fldP, buf, true);
+}
+
 void lprintf(const char *template, ...)
 {
 	char buf[2048];
