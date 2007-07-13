@@ -24,16 +24,14 @@
 #define MACH_TYPE_T3XSCALE	829
 
 #ifdef TREO650 
-#define KERNEL_OFFSET		0x0800000
 #define TAG_OFFSET		0x100
 #define INITRD_OFFSET		0x1500000
 #else
-#define KERNEL_OFFSET		0x8000
 #define TAG_OFFSET		0x100
 #define INITRD_OFFSET		0x0400000
 #endif
 
-#define T3_KERNEL_OFFSET	0x0800000
+#define KERNEL_OFFSET		0x0800000
 #define T3_INITRD_OFFSET	0x1500000
 
 static void jump_to_kernel(UInt32 kernel_base, UInt32 tag_base, UInt32 mach)
@@ -197,11 +195,10 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	}
 #endif
 
+	kernel_offset=KERNEL_OFFSET;
 	if (pg->mach_num==MACH_TYPE_T3XSCALE){
-	    kernel_offset=T3_KERNEL_OFFSET;
 	    initrd_offset=T3_INITRD_OFFSET;
 	} else {
-	    kernel_offset=KERNEL_OFFSET;
 	    initrd_offset=INITRD_OFFSET;
 	}
 	
