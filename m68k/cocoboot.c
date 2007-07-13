@@ -21,6 +21,7 @@
 #include <MemoryMgr.h>
 //#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <VFSMgr.h>
 
@@ -216,9 +217,69 @@ void close_console()
 void console_help(void)
 {
 	sendf("Available commands:\r\n");
-	sendf("  exit            close the console\r\n");
-	sendf("  help            show this help\r\n");
-	sendf("  ping [text]     reply with pong text\r\n");
+	sendf("  exit                  close the console\r\n");
+	sendf("  help                  show this help\r\n");
+	sendf("  mb addr [n] [filler]  dump or fill n 8-bit values starting at addr\r\n");
+	sendf("  mh addr [n] [filler]  dump or fill n 16-bit values starting at addr\r\n");
+	sendf("  mw addr [n] [filler]  dump or fill n 32-bit values starting at addr\r\n");
+	sendf("  ping [text]           reply with pong text\r\n");
+}
+
+void console_mw(char *args) {
+	char *next = NULL;
+	UInt32 addr = strtol(args, &next, 0);
+	UInt32 count = 1;
+	UInt32 fill = 0, fill_value = 0;
+	if (next && *next) {
+		count = strtol(next, &next, 0);
+	}
+	if (next && *next) {
+		fill_value = strtol(next, &next, 0);
+		fill = 1;
+	}
+	while (count--) {
+		if (fill) *((UInt32*)addr) = fill_value;
+		sendf("%08lx: %lx\r\n", addr, *((UInt32*)addr));
+		addr += 4;
+	}
+}
+
+void console_mh(char *args) {
+	char *next = NULL;
+	UInt32 addr = strtol(args, &next, 0);
+	UInt32 count = 1;
+	UInt32 fill = 0, fill_value = 0;
+	if (next && *next) {
+		count = strtol(next, &next, 0);
+	}
+	if (next && *next) {
+		fill_value = strtol(next, &next, 0);
+		fill = 1;
+	}
+	while (count--) {
+		if (fill) *((UInt16*)addr) = fill_value;
+		sendf("%08lx: %x\r\n", addr, *((UInt16*)addr));
+		addr += 2;
+	}
+}
+
+void console_mb(char *args) {
+	char *next = NULL;
+	UInt32 addr = strtol(args, &next, 0);
+	UInt32 count = 1;
+	UInt32 fill = 0, fill_value = 0;
+	if (next && *next) {
+		count = strtol(next, &next, 0);
+	}
+	if (next && *next) {
+		fill_value = strtol(next, &next, 0);
+		fill = 1;
+	}
+	while (count--) {
+		if (fill) *((UInt8*)addr) = fill_value;
+		sendf("%08lx: %x\r\n", addr, *((UInt8*)addr));
+		addr += 1;
+	}
 }
 
 /* index(3) - locate character in string */
@@ -246,6 +307,12 @@ void handle_command(char *cmd)
 		console_help();
 	} else if (!strcmp(cmd, "exit")) {
 		close_console();
+	} else if (!strcmp(cmd, "mb")) {
+		console_mb(args);
+	} else if (!strcmp(cmd, "mh")) {
+		console_mh(args);
+	} else if (!strcmp(cmd, "mw")) {
+		console_mw(args);	
 	} else {
 		sendf("Unknown command '%s'. Type 'help' for help.\r\n", cmd);
 	}
