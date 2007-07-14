@@ -202,7 +202,7 @@ UInt32 load_parts(int n, char *name, void **image)
 	vol = search_image(name, loc, sizeof(loc), &size);
 	if(vol < -1) goto out;
 
-	ftr_size = size;
+	ftr_size = size + 0x1000; /* allocate an extra 4k so we can align the image */
 	while (ftr_size) {
 		if(!(err=FtrPtrNew (CREATOR_ID, FEATURE_NUM + n, ftr_size, image))) {
 			break;
@@ -372,7 +372,7 @@ Boolean mainform_event(EventPtr event)
 		cmdline_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, CommandLine));
 	        cmdline_th = MemHandleNew(size);
 	        cmdline_tp = MemHandleLock(cmdline_th);
-		StrCopy(cmdline_tp, "init=/linuxrc root=/dev/mmcblk0p2"); /* default value */
+		StrCopy(cmdline_tp, " "); /* default value */
 		//PrefGetAppPreferences ('CcBt', 1, cmdline_tp, &size, true);
 		MemHandleUnlock(cmdline_th);
 		FldSetTextHandle(cmdline_p, cmdline_th);

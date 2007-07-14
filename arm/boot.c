@@ -24,9 +24,11 @@
 #define MACH_TYPE_T3XSCALE	829
 
 #define TAG_OFFSET		0x100
-#define INITRD_OFFSET		0x0400000
 
-#define T3_INITRD_OFFSET	0x1500000
+UInt32 make_4k_aligned(UInt32 addr)
+{
+	return addr + 0x1000 - (addr & 0xfff);
+}
 
 static void jump_to_kernel(void *kernel_base, UInt32 tag_base, UInt32 mach)
 {
@@ -84,7 +86,6 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	if(!kernel || !cmdline) {
 		return 0xc0ffee;
 	}
-	UInt32 initrd_offset;
 
 	/* since we're going to turn off the MMU, we need to translate
 	 *  all out pointers to physical addresses.
@@ -100,6 +101,13 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	if(!kernel | !cmdline | !pg) { 
 		return 0xbadc01a;
 	}
+
+	/* force our pointers to be 4k aligned, imgloader will have shifted 
+	 * the image forward.
+	 */
+	kernel = (void*) make_4k_aligned((UInt32)kernel);
+	if (initrd)
+		initrd = (void*) make_4k_aligned((UInt32)initrd);
 
 	/* that includes the stack pointer ... */
 	asm volatile ("mov %0, sp" : "=r"(vstack) );
@@ -176,20 +184,9 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 		setup_xscale_cpu();
 	}
 
-	if (pg->mach_num==MACH_TYPE_T3XSCALE){
-	    initrd_offset=T3_INITRD_OFFSET;
-	} else {
-	    initrd_offset=INITRD_OFFSET;
-	}
-	
 	/* place kernel parameters in memory */
 	setup_atags(pg->ram_base + TAG_OFFSET, pg->ram_base, pg->ram_size, cmdline,
-		    pg->ram_base + initrd_offset, initrd_size);
-
-	/* copy initrd into place */
-	if (initrd) {
-	    copy_image((void*)(pg->ram_base + initrd_offset), initrd, initrd_size);
-	}
+		    initrd, initrd_size);
 
 	/* bring on the penguin! */
 	jump_to_kernel(kernel, pg->ram_base + TAG_OFFSET, pg->mach_num);
