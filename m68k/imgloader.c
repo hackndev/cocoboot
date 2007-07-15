@@ -56,9 +56,6 @@ Int32 load_file(char *name, UInt16 vol_ref, UInt32 size, void *buffer,
 	err = VFSFileOpen(vol_ref, name, vfsModeRead, &f);
 	if(err != errNone) return -2;
 
-	/* ensure the image is 4k aligned. */
-	offset = 0x1000 - (((UInt32)buffer) & 0xfff);
-
 	VFSFileReadData(f, size, buffer, offset, &bytes_read);
 	VFSFileClose(f);
 
@@ -154,7 +151,7 @@ Int32 load_image(char *name, UInt32 size, UInt16 vol_ref, void *buffer)
 		}
 		
 	} else { /* vfs */
-		return load_file(name, vol_ref, size, buffer, 0x0);
+		return load_file(name, vol_ref, size, buffer, 0);
 	}
 
  out_unlock:
