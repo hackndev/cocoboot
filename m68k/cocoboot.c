@@ -208,9 +208,9 @@ void close_console()
 	Err err;
 	char *exit_text = "[Cocoboot exiting]\r\n";
 	if (usb_port) {
-		SrmSend(usb_port, exit_text, strlen(exit_text), &err),
-		SrmClose(usb_port);
-		usb_port = 0;
+		SrmSend(usb_port, exit_text, strlen(exit_text), &err);
+		//SrmClose(usb_port);
+		//usb_port = 0;
 	}
 }
 
@@ -227,57 +227,57 @@ void console_help(void)
 
 void console_mw(char *args) {
 	char *next = NULL;
-	UInt32 addr = strtol(args, &next, 0);
+	UInt32 addr = strtoul(args, &next, 0);
 	UInt32 count = 1;
 	UInt32 fill = 0, fill_value = 0;
 	if (next && *next) {
-		count = strtol(next, &next, 0);
+		count = strtoul(next, &next, 0);
 	}
 	if (next && *next) {
-		fill_value = strtol(next, &next, 0);
+		fill_value = strtoul(next, &next, 0);
 		fill = 1;
 	}
 	while (count--) {
-		if (fill) *((UInt32*)addr) = fill_value;
-		sendf("%08lx: %lx\r\n", addr, *((UInt32*)addr));
+		if (fill) *((UInt32*)addr) = EndianFix32(fill_value);
+		sendf("%08lx: %08lx\r\n", addr, EndianFix32(*((UInt32*)addr)));
 		addr += 4;
 	}
 }
 
 void console_mh(char *args) {
 	char *next = NULL;
-	UInt32 addr = strtol(args, &next, 0);
+	UInt32 addr = strtoul(args, &next, 0);
 	UInt32 count = 1;
 	UInt32 fill = 0, fill_value = 0;
 	if (next && *next) {
-		count = strtol(next, &next, 0);
+		count = strtoul(next, &next, 0);
 	}
 	if (next && *next) {
-		fill_value = strtol(next, &next, 0);
+		fill_value = strtoul(next, &next, 0);
 		fill = 1;
 	}
 	while (count--) {
-		if (fill) *((UInt16*)addr) = fill_value;
-		sendf("%08lx: %x\r\n", addr, *((UInt16*)addr));
+		if (fill) *((UInt16*)addr) = EndianFix16(fill_value);
+		sendf("%08lx: %04x\r\n", addr, EndianFix16(*((UInt16*)addr)));
 		addr += 2;
 	}
 }
 
 void console_mb(char *args) {
 	char *next = NULL;
-	UInt32 addr = strtol(args, &next, 0);
+	UInt32 addr = strtoul(args, &next, 0);
 	UInt32 count = 1;
 	UInt32 fill = 0, fill_value = 0;
 	if (next && *next) {
-		count = strtol(next, &next, 0);
+		count = strtoul(next, &next, 0);
 	}
 	if (next && *next) {
-		fill_value = strtol(next, &next, 0);
+		fill_value = strtoul(next, &next, 0);
 		fill = 1;
 	}
 	while (count--) {
 		if (fill) *((UInt8*)addr) = fill_value;
-		sendf("%08lx: %x\r\n", addr, *((UInt8*)addr));
+		sendf("%08lx: %02x\r\n", addr, *((UInt8*)addr));
 		addr += 1;
 	}
 }
