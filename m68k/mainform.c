@@ -372,7 +372,7 @@ Boolean mainform_event(EventPtr event)
 		cmdline_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, CommandLine));
 	        cmdline_th = MemHandleNew(size);
 	        cmdline_tp = MemHandleLock(cmdline_th);
-		StrCopy(cmdline_tp, "init=/linuxrc root=/dev/mmcblk0p2"); /* default value */
+		StrCopy(cmdline_tp, " "); /* default value */
 		//PrefGetAppPreferences ('CcBt', 1, cmdline_tp, &size, true);
 		MemHandleUnlock(cmdline_th);
 		FldSetTextHandle(cmdline_p, cmdline_th);
@@ -383,6 +383,10 @@ Boolean mainform_event(EventPtr event)
 		
 		kernel_ok = check_image("/zImage");
 		use_initrd = check_image("/initrd.gz");
+
+#ifdef NOPROMPT_MODE
+		if (kernel_ok) boot_linux();
+#endif
 
 	} else if (event->eType == menuEvent) {
 		return mainform_menu_event(event->data.menu.itemID);

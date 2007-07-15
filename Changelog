@@ -1,3 +1,5 @@
+  - Added compile option for skipping prompts.
+
 version 0.3:
   - Added overflow-buffer as last resort to allocation problem (slapin's idea)
   - Cleaned up treo code (removed all #ifdefs)
