@@ -85,7 +85,6 @@ char *parse_config_line(char *line, char **out_key, char **out_value)
 {
 	char *p = line;
 	char *key, *value;
-	char buf[128];
 
 	*out_key = *out_value = NULL;
 
@@ -172,6 +171,7 @@ int read_config(void)
 	FileRef f;
 	int line_no;
 	char *errmsg, *key, *value;
+	char buf[2048];
 
 	if (!search_file(CONFIG_FILE, &vol, &size)) {
 		return -1;
