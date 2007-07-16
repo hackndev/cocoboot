@@ -85,6 +85,7 @@ char *parse_config_line(char *line, char **out_key, char **out_value)
 {
 	char *p = line;
 	char *key, *value;
+	char buf[128];
 
 	*out_key = *out_value = NULL;
 
@@ -93,7 +94,6 @@ char *parse_config_line(char *line, char **out_key, char **out_value)
 	while (*key && isspace(*key))
 		key++;
 	if (!*key || *key == '#') return NULL; /* error: empty line or comment */
-
 
 	/* divide key and value into seperate strings */
 	while (*p && *p != '=') p++;
@@ -170,7 +170,6 @@ int read_config(void)
 	UInt16 vol;
 	UInt32 size;
 	FileRef f;
-	char buf[2048];
 	int line_no;
 	char *errmsg, *key, *value;
 
@@ -192,6 +191,8 @@ int read_config(void)
 			show_parse_error(errmsg, line_no);
 			continue;
 		}
+
+		if (!key) continue; /* blank line or comment */
 
 		if (set_option(key, value) < 0) {
 			show_parse_error("unrecognised option", line_no);

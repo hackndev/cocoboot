@@ -1,4 +1,4 @@
-# cocoboot.conf.exaple - example configuration file for Cocboot
+# cocoboot.conf.exaple - example configuration file for Cocoboot
 
 ## cmdline
 # The value of cmdline is the default kernel command-line.  The user can
