@@ -6,6 +6,7 @@
 #include "mem.h"
 #include "regs.h"
 #include "imgloader.h"
+#include "options.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -270,10 +271,10 @@ void boot_linux()
 	char *cmdline;
 
 	log_clear();	
-	kernel_size = load_parts(0, "/zImage", &kernel);
+	kernel_size = load_parts(0, get_option("kernel"), &kernel);
 	if(kernel_size) {
 		if(use_initrd) {
-			initrd_size = load_parts(1, "/initrd.gz", &initrd);
+			initrd_size = load_parts(1, get_option("initrd"), &initrd);
 		}
 
 		if(!use_initrd || initrd_size) {
@@ -372,7 +373,7 @@ Boolean mainform_event(EventPtr event)
 		cmdline_p = FrmGetObjectPtr(form, FrmGetObjectIndex(form, CommandLine));
 	        cmdline_th = MemHandleNew(size);
 	        cmdline_tp = MemHandleLock(cmdline_th);
-		StrCopy(cmdline_tp, " "); /* default value */
+		StrCopy(cmdline_tp, get_option("cmdline")); /* default value */
 		//PrefGetAppPreferences ('CcBt', 1, cmdline_tp, &size, true);
 		MemHandleUnlock(cmdline_th);
 		FldSetTextHandle(cmdline_p, cmdline_th);
@@ -381,12 +382,12 @@ Boolean mainform_event(EventPtr event)
 		FrmDrawForm(form);
 		handled = true;
 		
-		kernel_ok = check_image("/zImage");
-		use_initrd = check_image("/initrd.gz");
-
-#ifdef NOPROMPT_MODE
-		if (kernel_ok) boot_linux();
-#endif
+		kernel_ok = check_image(get_option("kernel"));
+		use_initrd = check_image(get_option("initrd"));
+		
+		/* boot immediately if in noprompt mode */
+		if (atoi(get_option("noprompt")) != 0 && kernel_ok)
+			boot_linux();
 
 	} else if (event->eType == menuEvent) {
 		return mainform_menu_event(event->data.menu.itemID);

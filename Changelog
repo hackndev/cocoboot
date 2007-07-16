@@ -1,4 +1,5 @@
-  - Added compile option for skipping prompts.
+  - Added reading of a config file.
+  - Added option for skipping prompts.
 
 version 0.3:
   - Added overflow-buffer as last resort to allocation problem (slapin's idea)

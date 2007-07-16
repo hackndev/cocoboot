@@ -26,6 +26,7 @@
 #include <VFSMgr.h>
 
 #include "cocoboot.h"
+#include "options.h"
 #include "cocoboot_r.h"
 #include "mainform.h"
 
@@ -398,7 +399,7 @@ void event_loop()
 
 UInt16 start_app()
 {
-
+	read_config();
 	arm_stack[0] = 0;
 	FrmGotoForm(MainForm);
 

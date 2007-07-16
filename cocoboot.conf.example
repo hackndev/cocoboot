@@ -1,0 +1,32 @@
+# cocoboot.conf.exaple - example configuration file for Cocboot
+
+## cmdline
+# The value of cmdline is the default kernel command-line.  The user can
+# edit this via the GUI unless noprompt is enabled.
+#
+# Default: [blank]
+
+cmdline = root=/dev/mmcblk0p1
+
+## kernel
+# Filename of the kernel zImage.  Cocoboot will look for this file on all
+# attached VFS disks.
+#
+# Defaut: /zImage
+
+kernel = /zImage-2.6.21
+
+## initrd
+# Filename of the initrd or initramfs ramdisk image.
+#
+# Default: /initrd.gz
+
+initrd = /initramfs_cpio.gz
+
+## noprompt
+# When this option is 1, Cocoboot will not prompt for the kernel
+# command-line and will instead boot Linux immediately when it is started.
+#
+# Default: 0
+
+noprompt = 0
