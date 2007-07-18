@@ -1,7 +1,7 @@
 #include "cocoboot_r.h"
 
 APPLICATIONICONNAME ID 1000 "Cocoboot"
-VERSION "0.2"
+VERSION "0.4"
 
 ICON
 BEGIN
@@ -79,7 +79,7 @@ END
 
 
 
-STRING GnuGpl	"Cocoboot 0.3, PalmOS Linux loader.\n"\
+STRING GnuGpl	"Cocoboot 0.4, PalmOS Linux loader.\n"\
 		"Copyright (C) 2006\n"\
 		"\n"\
 		"www.hackndev.com\n"\

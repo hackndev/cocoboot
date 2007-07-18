@@ -1,3 +1,5 @@
+version 0.4:
+  - Fixed 'c01d' error introduced in 0.3 on LD, TX etc.
   - Added reading of a config file.
   - Added option for skipping prompts.
 
