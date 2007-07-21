@@ -20,6 +20,8 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 void setup_atags(UInt32 tag_base, UInt32 ram_base, UInt32 ram_size, const char *cmd_line, 
 		UInt32 initrd_base, UInt32 initrd_size);
 
+/* debug.c */
+UInt32 install_irqhandler(ArmGlobals *g, UInt32 *buf);
 
 /* Disable IRQ and FIQ */
 #define irq_off() asm volatile ("mrs r0, cpsr \n" \

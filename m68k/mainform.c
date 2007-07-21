@@ -189,6 +189,30 @@ void mem_info()
 
 }
 
+void start_irq_trace()
+{
+	Err err=0;
+	UInt32 size = 1024L * 100; /* 100k should be plenty */
+	UInt32 ret;
+	void *buffer = NULL;
+	char msg[100];
+
+	if((err=FtrPtrNew (CREATOR_ID, FEATURE_NUM, size, &buffer))) {
+		sprintf(msg, "Error: %d", err);
+		FrmCustomAlert(InfoAlert, "Unable to allocate trace buffer.", msg, " ");
+		return;
+	}
+	
+	push_uint32(arm_stack, (UInt32)buffer);
+	ret = call_arm(arm_stack, ARM_install_irqhandler);
+	
+	if (!ret) {
+		FrmCustomAlert(InfoAlert, "Trace started.", " ", " ");
+	} else {
+		sprintf(msg, "Error: 0x%lx", ret);
+		FrmCustomAlert(InfoAlert, msg, " ", " ");
+	}
+}
 
 UInt32 load_parts(int n, char *name, void **image)
 {
@@ -323,6 +347,9 @@ Boolean mainform_menu_event(Int16 id)
 	case MenuItemConsole:
 		usb_console();
 		return true;
+	case MenuItemStartIrqTrace:
+ 		start_irq_trace();
+ 		return true; 
 	}
 	return false;
 }

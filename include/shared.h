@@ -19,6 +19,8 @@
 #define ARM_read_cp 1 /* (coproc, reg) */
 #define ARM_fb_test 2 /* () */
 #define ARM_boot_linux  3
+#define ARM_test  4
+#define ARM_install_irqhandler  5
 
 typedef UInt32 ArmStack;
 

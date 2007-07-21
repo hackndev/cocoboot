@@ -1,7 +1,7 @@
 CC = arm-palmos-gcc
 CFLAGS = -Wall -O -s -I../include ${DEFINES}
 LDFLAGS = -nostartfiles
-OBJS = arm.o atag.o boot.o cpu.o
+OBJS = arm.o atag.o boot.o cpu.o debug.o
 
 all: cocoboot.arm
 

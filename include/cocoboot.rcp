@@ -31,6 +31,10 @@ BEGIN
 	BEGIN
 		MENUITEM "USB Console" MenuItemConsole
 	END
+	PULLDOWN "Trace"
+	BEGIN
+		MENUITEM "IRQ trace" MenuItemStartIrqTrace
+	END
 END
 
 FORM ID MainForm AT (0 0 160 160) NOFRAME USABLE MENUID MainFormMenu HELPID GnuGpl MODAL
