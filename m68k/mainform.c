@@ -214,6 +214,56 @@ void start_irq_trace()
 	}
 }
 
+/* find some random volume to save to */
+UInt16 find_some_vol(void)
+{
+	UInt32 it;
+	UInt16 vn = 0;
+	it = vfsIteratorStart;
+	VFSVolumeEnumerate (&vn, &it);
+	return vn;
+}
+
+/* dump our memory trace log to the memory card
+ * TODO: make this safe when no trace has been run.
+ */
+void dump_trace_log(void)
+{
+	FileRef f = 0;
+	UInt16 vn = find_some_vol();
+	UInt32 *log = (UInt32*)EndianFix32(*(UInt32*)(0x68));
+	UInt32 *end = (UInt32*)EndianFix32(*(UInt32*)(0x64));
+	UInt32 val;
+	Err err;
+	char buf[256];
+	UInt32 bigbuf[100];
+	UInt32 i;
+	
+	sprintf(buf, "Log: log=%lx end=%lx blocks=%lx", log, end, end-log);
+	FrmCustomAlert(InfoAlert, "Dumping...", buf, " ");
+	err = VFSFileOpen (vn, "/cocoboot.trc", vfsModeWrite | vfsModeCreate, &f);
+	if (err != errNone) goto error1; 
+
+	while (log < end) {
+		/* lets do a bunch at a time for speed */
+		for (i=0; i < sizeof(bigbuf)/sizeof(UInt32) && log < end; i++) {
+			bigbuf[i] = *log;
+			log++;
+		}
+		err = VFSFileWrite(f, i*sizeof(UInt32), bigbuf, NULL);
+		if (err != errNone) goto error2;
+	}
+
+	VFSFileClose (f);
+	FrmCustomAlert(InfoAlert, "Trace log dumped to /cocoboot.trc.", " ", " ");
+	return;
+
+error2:
+	VFSFileClose (f);
+error1:
+	FrmCustomAlert(InfoAlert, "Error writing to /cocoboot.memtrace.", " ", " ");
+}
+
 UInt32 load_parts(int n, char *name, void **image)
 {
 	/* more ugly code... */
@@ -349,6 +399,9 @@ Boolean mainform_menu_event(Int16 id)
 		return true;
 	case MenuItemStartIrqTrace:
  		start_irq_trace();
+ 		return true; 
+	case MenuItemDumpTraceLog:
+ 		dump_trace_log();
  		return true; 
 	}
 	return false;

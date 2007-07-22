@@ -33,7 +33,8 @@ BEGIN
 	END
 	PULLDOWN "Trace"
 	BEGIN
-		MENUITEM "IRQ trace" MenuItemStartIrqTrace
+		MENUITEM "Start trace" MenuItemStartIrqTrace
+		MENUITEM "Dump log" MenuItemDumpTraceLog
 	END
 END
 

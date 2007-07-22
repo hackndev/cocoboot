@@ -17,6 +17,7 @@
 #define MenuItemDumpMMU 1005
 #define MenuItemConsole 1006
 #define MenuItemStartIrqTrace 1007
+#define MenuItemDumpTraceLog 1008
 
 #define ErrorAlert      1000
 #define InfoAlert       1001

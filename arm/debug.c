@@ -81,17 +81,20 @@ UInt32 install_irqhandler(ArmGlobals *g, UInt32 *buf)
 		*dest++ = *src++;
 
 	/* replace PalmOS handler with our own */
-	IRQH = buf;
+	//IRQH = buf;
 	DATAH = dataoffset;
+
+	*((UInt32**)0x64) = dest;
+	*((UInt32**)0x68) = dest;
 	
 	set_DBCON(0); /* disable debugging */
-	set_DBR0(0x90100000);
-	set_DBR1(0xffffffff);
+	set_DBR0(0x90100000); /* this is the address we want to monitor */
+	set_DBR1(0x00000000); /* this is the mask (0 = compare bit, 1 = ignore bit) */
+	set_DBCON(2 | 1<<8); /* enable DBR0, both load and store */
 	set_DCSR(1<<31); /* global enable */
-	set_DBCON(2); /* enable DBR0, both load and store */
 
 //	return *(volatile UInt32*)0x90100000;
-	return (UInt32)dataoffset;
+	return dest; //(UInt32)dataoffset;
 }
 
 void irqhandler() {
@@ -99,7 +102,6 @@ void irqhandler() {
 	asm volatile ("nop");
 	asm volatile ("nop");
 	asm volatile ("nop");
-	
 	/* Backup register values */
 #if 0	
 	asm volatile ("str r0, REG0");
@@ -128,7 +130,22 @@ void datahandler()
 	asm volatile ("nop");
 	asm volatile ("nop");
 	asm volatile ("nop");
-	
+	//asm volatile ("stmdb	sp!, {r14}"); 		/* save r14 */
+	//asm volatile ("mov	r14, #0");
+
+	//asm volatile ("mrc	p15, 0, r14, c10, c0, 0");/* DCSR */
+	//asm volatile ("and	r14, r14, #28");	/* get method of entry */
+	//asm volatile ("cmp	r14, #8");		/* data breakpoint? */
+	//asm volatile ("bne	runaway");		/* data breakpoint? */
+	//asm volatile ("goof: b goof");		/* data breakpoint? */
+	//asm volatile ("runaway:ldmia   sp!, {r14}");
+	//asm volatile ("mov r0, #0x30000001");
+	//asm volatile ("mov r1, #0x30000002");
+	//asm volatile ("mov r2, #0x30000003");
+	//asm volatile ("mov r3, #0x30000004");
+	//asm volatile ("mov r4, #0x30000005");
+	//asm volatile ("mov r5, #0x30000006");
+	//asm volatile ("subs pc,r14,#4"); /* return to sender */
 #if 0
 	asm volatile ("stmdb	sp!, {r14}"); 		/* save r14 */
 	asm volatile ("mrc	p15, 0, r14, c10, c0, 0");/* DCSR */
@@ -148,54 +165,60 @@ void datahandler()
 	/* Store the values of r0 and r1 so we can get them
 	 * without messing with the stack.
 	 */
-	asm volatile ("str r0, [pc, #(Reg0 - . - 8)]");
-	asm volatile ("str r1, [pc, #(Reg1 - . - 8)]");
-//	asm volatile ("mov r1, #0");
-	
-	/* grab the next free spot in the buffer */
-//	asm volatile ("ldr r1, [pc, #(DumpOffset - . - 8)]");
-#if 0
-	asm volatile ("pcgrab: add r1, r1, pc");
-	asm volatile ("add r1, r1, #(HandlersEnd - pcgrab + 8)");
-	
-	/* store "1" to indicate this is a data breakpoint */
-	asm volatile ("mov r0, #1"); 
-	asm volatile ("str r0, [r1]");
-	asm volatile ("add r1, r1, #4");
 
-	/* lets save the address of the instruction we broken, as well
-	 * as the instruction itself.
-	 */
-	asm volatile ("sub r0, r14, #8");
-	asm volatile ("str r0, [r1]");
-	asm volatile ("ldr r0, [r0]");
-	asm volatile ("str r0, [r1, #4]");
-	asm volatile ("add r1, r1, #8");
+	asm volatile ("stmdb	sp!, {r14}"); 		/* save r14 */
+	  asm volatile ("stmdb	sp!, {r12}"); 		/* save r12 */
 	
-	/* now lets start saving registers, first the tricky ones */
-	asm volatile ("ldr r0, [pc, #(Reg0 - . - 8)]");
-	asm volatile ("str r0, [r1]");
-	asm volatile ("ldr r0, [pc, #(Reg1 - . - 8)]");
-	asm volatile ("str r0, [r1, #4]");
-	asm volatile ("add r1, r1, #8");
-	
-	/* now the rest */
-	asm volatile ("str r2, [r1]");
-	asm volatile ("str r3, [r1, #4]");
-	asm volatile ("str r4, [r1, #8]");
-	asm volatile ("str r5, [r1, #0xc]");
-	asm volatile ("str r6, [r1, #0x10]");
-	asm volatile ("str r7, [r1, #0x14]");
-	asm volatile ("str r8, [r1, #0x18]");
-	asm volatile ("str r9, [r1, #0x1c]");
-	asm volatile ("str r10, [r1, #0x20]");
-	asm volatile ("str r11, [r1, #0x24]");
-	asm volatile ("str r12, [r1, #0x28]");
-	asm volatile ("add r1, r1, #0x2c");
-	
-	/* save our buffer pointer */
-	asm volatile ("str r1, [pc, #(DumpOffset - . - 8)]");
-#endif	
+	    asm volatile ("mov	r12, r14"); 		/* copy return addr */
+
+	    asm volatile ("mcr p15, 0, %0, c3, c0, 0" : : "r"(0xffffffff));
+
+
+	    asm volatile ("mov r14, #0x00000064");
+	    asm volatile ("orr r14, r14, #0x00000000");
+
+	    asm volatile ("ldr r14, [r14]");
+
+	    /* store some sort of start of frame marker */
+	    asm volatile ("stmdb	sp!, {r12}"); 		/* save r12 */
+	      asm volatile ("mov r12, #0x00034");
+	      asm volatile ("orr r12, r12, #0x1200");
+	      asm volatile ("str r12, [r14]");
+	    asm volatile ("ldmia	sp!, {r12}"); 	/* restore r12, this gets us back out return addr */
+
+	    /* save location of read/write instruction */
+	    asm volatile ("subs r12, r12, #8");
+	    asm volatile ("str r12, [r14, #0x38]");
+
+	    /* now save the actual instruction itself */
+	    //asm volatile ("ldr r12, [r12]");
+	    //asm volatile ("str r12, [r14, #0x3c]");
+
+	  asm volatile ("ldmia	sp!, {r12}"); 		/* restore r12 again, now real value */
+
+	  /* now store all our registers */
+	  asm volatile ("str r0, [r14, #0x4]");
+	  asm volatile ("str r1, [r14, #0x8]");
+	  asm volatile ("str r2, [r14, #0xc]");
+	  asm volatile ("str r3, [r14, #0x10]");
+	  asm volatile ("str r4, [r14, #0x14]");
+	  asm volatile ("str r5, [r14, #0x18]");
+	  asm volatile ("str r6, [r14, #0x1c]");
+	  asm volatile ("str r7, [r14, #0x20]");
+	  asm volatile ("str r8, [r14, #0x24]");
+	  asm volatile ("str r9, [r14, #0x28]");
+	  asm volatile ("str r10, [r14, #0x2c]");
+	  asm volatile ("str r11, [r14, #0x30]");
+	  asm volatile ("str r12, [r14, #0x34]");
+
+	  /* increment the pointer */
+	  asm volatile ("mov r0, #0x40");
+	  asm volatile ("add r14, r14, r0");
+	  asm volatile ("mov r0, #0x64");
+	  asm volatile ("str r14, [r0]");
+
+	asm volatile ("ldmia   sp!, {r14}");
+
 	/* Restore everything we clobbered */
 	asm volatile ("ldmia   sp!, {r0-r12}");
 	
@@ -210,8 +233,8 @@ void datahandler()
 	asm volatile ("OldDataAbort: .word 0x200a3370");
 #endif
 
-	asm volatile ("Reg0: .word 0");
-	asm volatile ("Reg1: .word 0");
+	asm volatile ("Rego0: .word 0");
+	asm volatile ("Rego1: .word 0");
 	asm volatile ("DumpOffset: .word 0");
 	asm volatile ("HandlersEnd: .word 0");
 }
