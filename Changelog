@@ -1,3 +1,6 @@
+  - Added GSM unlock code to info menu (unlocked GSM Treos only).
+  - Added basic memory tracing.
+
 version 0.4:
   - Fixed 'c01d' error introduced in 0.3 on LD, TX etc.
   - Added reading of a config file.

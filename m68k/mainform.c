@@ -264,6 +264,24 @@ error1:
 	FrmCustomAlert(InfoAlert, "Error writing to /cocoboot.memtrace.", " ", " ");
 }
 
+void show_gsm_code(void)
+{
+	char *buf = 0;
+	UInt16 len;
+	char buf2[256];
+	int i;
+	SysGetROMToken(0, 'GoUc', &buf, &len);
+	if (!buf || len == 0xffff) {
+		FrmCustomAlert(InfoAlert, "Code not found.", "This option only works on unlocked GSM phones. It does not allow you to unlock a locked phone.", " ");
+		return;
+	}
+	strncpy(buf2, buf, len < 256 ? len : 256);
+	buf2[len] = 0;
+	for (i=0; i<len; i++)
+		buf2[i] -= 13;
+	FrmCustomAlert(InfoAlert, "GSM unlock code:", buf2, " ");
+}
+
 UInt32 load_parts(int n, char *name, void **image)
 {
 	/* more ugly code... */
@@ -402,7 +420,11 @@ Boolean mainform_menu_event(Int16 id)
  		return true; 
 	case MenuItemDumpTraceLog:
  		dump_trace_log();
+ 		return true;
+	case MenuItemGsmCode:
+ 		show_gsm_code();
  		return true; 
+
 	}
 	return false;
 }

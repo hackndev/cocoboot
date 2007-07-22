@@ -26,6 +26,7 @@ BEGIN
 		MENUITEM "LCD registers (PXA only)" MenuItemLCD
 		MENUITEM "LCD test (PXA only)" MenuItemLCDTest
 		MENUITEM "Dump MMU" MenuItemDumpMMU
+		MENUITEM "GSM Unlock Code" MenuItemGsmCode
 	END
 	PULLDOWN "Tools"
 	BEGIN
