@@ -34,6 +34,7 @@ struct Machine mach_table[] = {
 	{ 'H101',  909, "Palm Treo 600" },    /* not registered */
 	{ 'H102',  909, "Palm Treo 650" },
 	{ 'D053', 1230, "Palm Treo 680" },
+	{ 'D052', 1421, "Palm Treo 700p" },
 	{ 'MT64',  918, "Palm Tungsten C" },
 	{ 'Cct1',  817, "Palm Tungsten E" },
 	{ 'Zir4',  844, "Palm Tungsten E2" },
