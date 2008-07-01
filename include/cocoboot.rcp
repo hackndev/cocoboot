@@ -57,6 +57,7 @@ BEGIN
 	POPUPLIST ID PortTrigger  PortList
 */
         BUTTON "Boot!" ID LinuxButton AT (2 140 40 16)
+        GRAFFITISTATEINDICATOR AT (144 54)
 END
 
 /*

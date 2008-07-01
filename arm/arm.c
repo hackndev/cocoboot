@@ -40,8 +40,6 @@ void map(ArmGlobals *g, UInt32 phys, UInt32 virt);
 unsigned long arm_entry(const void *emulStateP, char *userData68KP,
 			Call68KFuncType * call68KFuncP)
 {
-	int i;
-	
 	ArmStack *stack = (ArmStack *) userData68KP;
 	ArmGlobals *g;
 	UInt32 func;
@@ -105,7 +103,7 @@ Err HALDisplayGetAttributes(UInt16 attr, UInt32 *valueP);
 
 UInt32 foobar()
 {
-	UInt32 val='wtf\0';
+	UInt32 val=('w'<<24)|('t'<<16)|('f'<<8)|'\0';
 	void *old, *fptr;
 	// depth = 16
 	// videorambase = 0x50000000
@@ -175,30 +173,29 @@ int decode_bpp(UInt32 lccr3)
  */
 UInt32 fb_test(ArmGlobals *g) 
 {
-	UInt32 lccr1 = reg(LCCR1);
+/*	UInt32 lccr1 = reg(LCCR1);
 	UInt32 lccr2 = reg(LCCR2);
-	UInt32 lccr3 = reg(LCCR3);
+*/	UInt32 lccr3 = reg(LCCR3);
 
-	UInt32 w = (lccr1 & 0x3ff) + 1;
-	UInt32 h = (lccr2 & 0x3ff) + 1;
 	UInt32 bpp = decode_bpp(lccr3);
+/*	UInt32 w = (lccr1 & 0x3ff) + 1;
+	UInt32 h = (lccr2 & 0x3ff) + 1;
 	UInt32 len = w * h * bpp / 8;
 
 	int alldead;
-
+*/
 	/* older devices use 8-bit & palette, what do we do for them? */
 	if(bpp != 16) {
 		return 0xbadfb000 | bpp;
 	}
 
-	void *fb_base = (void*) reg( reg(FDADR0) + DMA_SRC);
+/*	void *fb_base = (void*) reg( reg(FDADR0) + DMA_SRC);
 	void *fb_end = fb_base + len;
+*/
 
-
-	UInt16 i=0;
-	UInt16 *j=0;
 	irq_off();
-	/*
+/*	UInt16 i=0;
+	UInt16 *j=0;
 	for(i=0; i<0xff; i++) {
 		alldead = 1;
 		for(j = fb_base; (void*)j < fb_end; j++) {

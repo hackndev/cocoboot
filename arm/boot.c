@@ -65,14 +65,14 @@ static void copy_image(UInt32 *dest, UInt32 *src, UInt32 size)
 		*(dest++) = *(src++);
 	}
 }
-
+#ifdef MOVE_FRAMEBUFFER
 static void map_lcd(void)
 {
 #define reg(a) (*(UInt32 *)(a))
 	 reg( reg(FDADR0) + DMA_SRC)=0xa1d68000;
 #undef reg
 }
-
+#endif
 
 UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 		  void *initrd, UInt32 initrd_size, char *cmdline)

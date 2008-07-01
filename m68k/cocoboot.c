@@ -19,7 +19,7 @@
 #include <PceNativeCall.h>
 #include <MemGlue.h>
 #include <MemoryMgr.h>
-//#include <string.h>
+/*#include <string.h>*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -284,7 +284,7 @@ void console_mb(char *args) {
 }
 
 /* index(3) - locate character in string */
-char *index(const char *s, int c)
+char *index(char *s, int c)
 {
 	while (*s) {
 		if(*s == c) return s;

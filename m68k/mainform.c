@@ -233,13 +233,13 @@ void dump_trace_log(void)
 	UInt16 vn = find_some_vol();
 	UInt32 *log = (UInt32*)EndianFix32(*(UInt32*)(0x68));
 	UInt32 *end = (UInt32*)EndianFix32(*(UInt32*)(0x64));
-	UInt32 val;
+/*	UInt32 val;*/
 	Err err;
 	char buf[256];
 	UInt32 bigbuf[100];
 	UInt32 i;
 	
-	sprintf(buf, "Log: log=%lx end=%lx blocks=%lx", log, end, end-log);
+	sprintf(buf, "Log: log=%lx end=%lx blocks=%lx", (UInt32)log, (UInt32)end, end-log);
 	FrmCustomAlert(InfoAlert, "Dumping...", buf, " ");
 	err = VFSFileOpen (vn, "/cocoboot.trc", vfsModeWrite | vfsModeCreate, &f);
 	if (err != errNone) goto error1; 
@@ -266,7 +266,7 @@ error1:
 
 void show_gsm_code(void)
 {
-	char *buf = 0;
+	UInt8 *buf = 0;
 	UInt16 len;
 	char buf2[256];
 	int i;

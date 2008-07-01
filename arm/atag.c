@@ -139,7 +139,7 @@ static void setup_core_tag(struct atag **params, void * address,long pagesize)
 
 	*params = tag_next(*params);              /* move pointer to next tag */
 }
-
+#if 0
 static void
 setup_ramdisk_tag(struct atag **params, UInt32 size)
 {
@@ -152,7 +152,7 @@ setup_ramdisk_tag(struct atag **params, UInt32 size)
 
 	*params = tag_next(*params);              /* move pointer to next tag */
 }
-
+#endif
 static void
 setup_initrd2_tag(struct atag **params, UInt32 start, UInt32 size)
 {

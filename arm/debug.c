@@ -94,7 +94,7 @@ UInt32 install_irqhandler(ArmGlobals *g, UInt32 *buf)
 	set_DCSR(1<<31); /* global enable */
 
 //	return *(volatile UInt32*)0x90100000;
-	return dest; //(UInt32)dataoffset;
+	return (UInt32)dest; //(UInt32)dataoffset;
 }
 
 void irqhandler() {
