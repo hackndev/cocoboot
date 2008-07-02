@@ -19,6 +19,8 @@
 #define MenuItemStartIrqTrace 1007
 #define MenuItemDumpTraceLog 1008
 #define MenuItemGsmCode 1009
+#define MenuItemDumpMRV 1010
+#define MenuItemDumpASUS 1011
 
 #define ErrorAlert      1000
 #define InfoAlert       1001

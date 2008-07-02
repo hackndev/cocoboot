@@ -7,6 +7,7 @@
 #include "regs.h"
 #include "imgloader.h"
 #include "options.h"
+#include "fwutils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -423,6 +424,12 @@ Boolean mainform_menu_event(Int16 id)
  		return true;
 	case MenuItemGsmCode:
  		show_gsm_code();
+ 		return true; 
+	case MenuItemDumpMRV:
+ 		extract_mrv_wifi_fw();
+ 		return true; 
+	case MenuItemDumpASUS:
+ 		extract_asus_wifi_fw();
  		return true; 
 
 	}

@@ -26,6 +26,8 @@ BEGIN
 		MENUITEM "LCD registers (PXA only)" MenuItemLCD
 		MENUITEM "LCD test (PXA only)" MenuItemLCDTest
 		MENUITEM "Dump MMU" MenuItemDumpMMU
+		MENUITEM "Dump Marvell WiFi Firmware" MenuItemDumpMRV
+		MENUITEM "Dump ASUS WiFi Firmware" MenuItemDumpASUS
 		MENUITEM "GSM Unlock Code" MenuItemGsmCode
 	END
 	PULLDOWN "Tools"
