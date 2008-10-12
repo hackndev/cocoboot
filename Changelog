@@ -1,3 +1,4 @@
+  - Setup resume vector for suspending Linux on the Treos.
   - Added WiFi firmware dump (Marek Vasut)
   - Added GSM unlock code to info menu (unlocked GSM Treos only).
   - Added basic memory tracing.

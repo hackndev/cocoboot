@@ -45,22 +45,15 @@ void setup_xscale_cpu(void)
 	GEDR2 = GEDR2;
 
 	UDCCR = 0;
+
+	/*
+	 * Setup resume vector for suspend on Treos. 
+	 *
+	 * The original bootloader will jump to the start of SDRAM (0xa0000000) on resume
+	 * so we place some instructions there which will read PSPR and jump to it, which
+	 * is what Linux expects.
+	 */
+	*((u32*) 0xa0000000) = 0xe3a00121; /* mov     r0, #0x40000008   */
+	*((u32*) 0xa0000004) = 0xe280060f; /* add     r0, r0, #0xf00000 */
+	*((u32*) 0xa0000008) = 0xe590f000; /* ldr     pc, [r0]          */
 }
-
-void setup_treo650_cpu(void)
-{
-
-#if 1
-	/*Interrupts off*/
-	asm volatile ("mrs r0, cpsr");
-	asm volatile ("orr r0, r0, #0xc0");
-	asm volatile ("msr cpsr, r0");
-#endif
-
-	setup_xscale_cpu();
-	
-	*((unsigned char*)(0x08000066)) = 7;
-}
-
-
-
