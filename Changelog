@@ -1,3 +1,4 @@
+  - Added WiFi firmware dump (Marek Vasut)
   - Added GSM unlock code to info menu (unlocked GSM Treos only).
   - Added basic memory tracing.
 
