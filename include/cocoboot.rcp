@@ -1,7 +1,7 @@
 #include "cocoboot_r.h"
 
 APPLICATIONICONNAME ID 1000 "Cocoboot"
-VERSION "0.4"
+VERSION "0.5"
 
 ICON
 BEGIN
