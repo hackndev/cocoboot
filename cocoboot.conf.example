@@ -30,3 +30,17 @@ initrd = /initramfs_cpio.gz
 # Default: 0
 
 noprompt = 0
+
+## openserial
+# Set this to the serial (or USB) port to open before booting.
+#
+#      Cradle: 0x8000
+#          IR: 0x8001
+#     Console: 0x8002
+# CradleRS232: 0x8003
+#   CradleUSB: 0x8004
+#
+# Default: 0 (disabled)
+#
+
+openserial = 0

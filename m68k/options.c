@@ -46,6 +46,10 @@ struct option {
 		.value = "0",
 	},
 	{
+		.key = "openserial",
+		.value = "0",
+	},
+	{
 		.key = "", /* sentinal */
 	},
 };

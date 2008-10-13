@@ -361,6 +361,7 @@ void boot_linux()
 	void *kernel=NULL, *initrd=NULL;
 	UInt32 kernel_size=0, initrd_size=0;
 	UInt32 ret;
+	UInt16 usb_port;
 	char *cmdline;
 
 	log_clear();	
@@ -368,6 +369,10 @@ void boot_linux()
 	if(kernel_size) {
 		if(use_initrd) {
 			initrd_size = load_parts(1, get_option("initrd"), &initrd);
+		}
+	
+		if (atoi(get_option("openserial")) != 0) {
+			SrmOpen(atoi(get_option("openserial")), 115200, &usb_port);
 		}
 
 		if(!use_initrd || initrd_size) {
@@ -493,6 +498,7 @@ Boolean mainform_event(EventPtr event)
 		
 		kernel_ok = check_image(get_option("kernel"));
 		use_initrd = check_image(get_option("initrd"));
+	
 		
 		/* boot immediately if in noprompt mode */
 		if (atoi(get_option("noprompt")) != 0 && kernel_ok)
