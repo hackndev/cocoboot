@@ -31,10 +31,10 @@ struct Machine {
 struct Machine mach_table[] = {
 	{ '????',    0, "Unknown device" },
 	{ 'TunX',  835, "Palm LifeDrive" },
-	{ 'H101',  909, "Palm Treo 600" },    /* not registered */
 	{ 'H102',  909, "Palm Treo 650" },
 	{ 'D053', 1230, "Palm Treo 680" },
 	{ 'D052', 1421, "Palm Treo 700p" },
+	{ 'D062', 1944, "Palm Centro" },
 	{ 'MT64',  918, "Palm Tungsten C" },
 	{ 'Cct1',  817, "Palm Tungsten E" },
 	{ 'Zir4',  844, "Palm Tungsten E2" },
