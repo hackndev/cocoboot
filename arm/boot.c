@@ -28,6 +28,7 @@
 
 #define T3_INITRD_OFFSET	0x1500000
 
+
 static void jump_to_kernel(void *kernel_base, UInt32 tag_base, UInt32 mach)
 {
 	asm volatile (	"mov r0, #0\n"
@@ -119,6 +120,7 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	 * Lock the door! What it won't know, won't hurt it.
 	 */
 
+
 	irq_off();	
 
 	/* Disable memory protection (page table is read-only on treos) */
@@ -133,15 +135,9 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 		return 0xc01d;
 	}
 
-
-	/*JMM - FIXME FIXME FIXME something corrupts g->mach_num in this */
-	/*Damned if i can find out what it is - stick it in r2 for the moment */
-
 	/* save physical stack pointer and make the jump to physical addresss
 	 * space
 	 */
-	asm volatile ("mov r2, %0" : : "r"(g->mach_num): "r2");
-
 	asm volatile ("mov r3, %0\n"
 	              "mov pc, %1" : : "r"(pstack), "r"(pphys_jump) : "r3");
 
@@ -157,16 +153,8 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 			"mov sp, r3" 		/* setup physical stack pointer */
 			);
 
-	/*pg isn't working until we shutdown the mmu - why?*/
-	{
-	UInt32 a;
-	asm volatile ("mov %0, r2" : "=r"(a));
-
 	/* now we're quite safe to shut off the MMU */
 	disable_mmu();
-
-	pg->mach_num=a;
-	}
 
 #ifdef MOVE_FRAMEBUFFER
 	map_lcd();

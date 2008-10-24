@@ -26,6 +26,11 @@
 
 void setup_xscale_cpu(void)
 {
+	/* Interrupts off */
+	asm volatile ("mrs r0, cpsr");
+	asm volatile ("orr r0, r0, #0xc0");
+	asm volatile ("msr cpsr, r0");
+
 	GCR |= GCR_ACLINK_OFF;       // shut off the AC97 audio controlller
 	GCR &= ~GCR_PRIRDY_IEN;      // mask an interrupt that causes sound driver to hang
 
