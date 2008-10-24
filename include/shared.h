@@ -35,9 +35,10 @@ typedef struct {
 	UInt32 ram_base;
 	UInt32 ram_size;
 
+	UInt32 pad[2];
 	UInt32 mach_num;
 
-	UInt32 pad[4];
+	UInt32 pad2[8];
 } ArmGlobals;
 
 void push_uint32(ArmStack *stack, UInt32 n);
