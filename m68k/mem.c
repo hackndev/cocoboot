@@ -48,7 +48,7 @@ UInt32 get_ram_size()
 	/* PalmOS seems to not report the correct RAM size, so we round
 	 * to the next highest power of 2
 	 */
-	UInt32 reported = get_reported_ram_size();
+	UInt32 reported = get_reported_ram_size() + 0x00300000; /* 3mb to cover system */
 	UInt32 size = 0x100000;	/* start at 1mb */
 	do {
 		size <<= 1;
