@@ -1,3 +1,6 @@
+version 0.5.2:
+  - Corrected TLB for Treo 700p and Centro
+
 version 0.5.1:
   - Stability fixes on Treo 680
   - Added Palm Centro to machine list.

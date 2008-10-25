@@ -96,6 +96,8 @@ UInt32 get_tt_offset()
 	switch (mach_table[mach].linux_id) {
 	case 909:	/* Treo 650 */
 	case 1230:	/* Treo 680 */
+	case 1421:	/* Treo 700p */
+	case 1944:	/* Centro */
 		return 0;
 	default:
 		return get_ram_base();
