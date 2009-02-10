@@ -12,11 +12,23 @@ int test_elf(UInt32* img)
 	return (img[0] == elfmagic);
 }
 
+/* WIP ... this will go into fn below */
+int mytest(UInt32 *img) {
+	struct elf32_hdr *ehdr = img;
+	struct elf32_phdr *phdr;
+
+	phdr = img + ((ehdr->e_phoff + (ehdr->e_phentsize * 0)) >> 2);
+
+	return phdr->p_vaddr;
+}
+
 /* relocate_elf()
  *
  * Relocate the ELF file in memory ... ToDo
  * */
 void relocate_elf(UInt32 *img, UInt32 size)
 {
+	struct elf32_hdr *ehdr = img;
+
 	for(;;);
 }

@@ -42,5 +42,16 @@ struct elf32_hdr {
 	UInt16		e_shstrndx;
 };
 
+struct elf32_phdr {
+	UInt32		p_type;
+	UInt32		p_offset;
+	UInt32		p_vaddr;
+	UInt32		p_paddr;
+	UInt32		p_filesz;
+	UInt32		p_memsz;
+	UInt32		p_flags;
+	UInt32		p_align;
+};
+
 int test_elf(UInt32 *img);
 void relocate_elf(UInt32 *kernel, UInt32 size);
