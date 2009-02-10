@@ -20,6 +20,7 @@
 #include "mem.h"
 #include "regs.h"
 #include "cpu.h"
+#include "elf.h"
 
 #define MACH_TYPE_T3XSCALE	829
 
@@ -81,16 +82,19 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	ArmGlobals *pg=NULL;
 	void *vstack=NULL,	*pstack=NULL;
 	void *vphys_jump=NULL,	*pphys_jump=NULL;
-	
+	int elf = 0;
+
 	if(!kernel || !cmdline) {
 		return 0xc0ffee;
 	}
 	UInt32 initrd_offset;
 
+	/* We do this before tinkering with hardware, it's safer */
+	elf = test_elf((UInt32 *)kernel);
+
 	/* since we're going to turn off the MMU, we need to translate
 	 *  all out pointers to physical addresses.
 	 */
-
 	kernel = (void *)virt_to_phys(g, (UInt32) kernel);
 	cmdline = (char *)virt_to_phys(g, (UInt32) cmdline);
 
@@ -179,8 +183,12 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	    copy_image((void*)(pg->ram_base + initrd_offset), initrd, initrd_size);
 	}
 
-	/* bring on the penguin! */
-	jump_to_kernel(kernel, pg->ram_base + TAG_OFFSET, pg->mach_num);
+	if (elf)
+		/* handle additional stuff necessary to load ELF kernel */
+		relocate_elf(kernel, kernel_size);
+	else
+		/* bring on the penguin! */
+		jump_to_kernel(kernel, pg->ram_base + TAG_OFFSET, pg->mach_num);
 
 	return 0xe4;	/* sadly, this return will never be executed */
 }
