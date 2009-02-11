@@ -14,15 +14,17 @@ int test_elf(UInt32* img)
 
 /* WIP ... this will go into fn below */
 int mytest(UInt32 *img) {
-	struct elf32_hdr *ehdr = img;
+	struct elf32_hdr *ehdr = (struct elf32_hdr *) img;
 	struct elf32_phdr *phdr;
 	struct elf32_shdr *shdr;
 
 	/* phdr contains 0th entry from Program Header table
 	 * shdr contains 2nd entry from Section Header table
 	 * */
-	phdr = img + ((ehdr->e_phoff + (ehdr->e_phentsize * 0)) >> 2);
-	shdr = img + ((ehdr->e_shoff + (ehdr->e_shentsize * 2)) >> 2);
+	phdr = (struct elf32_phdr *)(img + ((ehdr->e_phoff +
+		(ehdr->e_phentsize * 0)) >> 2));
+	shdr = (struct elf32_shdr *)(img + ((ehdr->e_shoff +
+		(ehdr->e_shentsize * 2)) >> 2));
 
 	return shdr->sh_addr;
 }
@@ -33,7 +35,5 @@ int mytest(UInt32 *img) {
  * */
 void relocate_elf(UInt32 *img, UInt32 size)
 {
-	struct elf32_hdr *ehdr = img;
-
 	for(;;);
 }
