@@ -9,7 +9,7 @@ default:
 	${MAKE} clean
 	${MAKE} cocoboot.prc
 
-all: cocoboot.prc
+all: cocoboot.prc elf-kernel
 
 install: cocoboot.prc
 	pilot-xfer -p /dev/ttyUSB1 -i cocoboot.prc
@@ -23,12 +23,19 @@ arm-objs:
 m68k-objs:
 	make -C m68k DEFINES=${DEFINES}
 
+elf-kernel:
+	make -C elfkernel
+
 iTbl.bin: #images/*
 	tools/chunkimages.py
 
 gui: include/cocoboot_r.h
 	pilrc -q -I include include/cocoboot.rcp 
+
 clean:
 	rm -f *.prc *.map *~ *.bin 
 	make -C arm clean
 	make -C m68k clean
+
+elf-clean:
+	make -C elfkernel clean
