@@ -16,10 +16,15 @@ int test_elf(UInt32* img)
 int mytest(UInt32 *img) {
 	struct elf32_hdr *ehdr = img;
 	struct elf32_phdr *phdr;
+	struct elf32_shdr *shdr;
 
+	/* phdr contains 0th entry from Program Header table
+	 * shdr contains 2nd entry from Section Header table
+	 * */
 	phdr = img + ((ehdr->e_phoff + (ehdr->e_phentsize * 0)) >> 2);
+	shdr = img + ((ehdr->e_shoff + (ehdr->e_shentsize * 2)) >> 2);
 
-	return phdr->p_vaddr;
+	return shdr->sh_addr;
 }
 
 /* relocate_elf()
