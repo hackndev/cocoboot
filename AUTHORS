@@ -2,7 +2,8 @@ Cocoboot developers:
 
 Alex Osborne        - Main developer
 James McKenzie      - Treo650 support + several nice enchancements
-Marek Vasut         - Lots of enchancements and support for several extra devices
+Marek Vasut         - Lots of enchancements, support for several extra devices,
+                      support for loading ELF binaries and booting OpenBSD kernel
 
 Cocoboot was heavily based (in concept) on the Garux project, contributed to by:
 

@@ -1,3 +1,7 @@
+version 0.6.0
+  - ELF binaries loading support (and OpenBSD kernel booting support).
+  - Simple ELF demo kernel.
+
 version 0.5.3:
   - Added GSM Centro. (thanks kEdAR)
 

@@ -1,7 +1,7 @@
 #include "cocoboot_r.h"
 
 APPLICATIONICONNAME ID 1000 "Cocoboot"
-VERSION "0.5.3"
+VERSION "0.6.0"
 
 ICON
 BEGIN
@@ -26,8 +26,8 @@ BEGIN
 		MENUITEM "LCD registers (PXA only)" MenuItemLCD
 		MENUITEM "LCD test (PXA only)" MenuItemLCDTest
 		MENUITEM "Dump MMU" MenuItemDumpMMU
-		MENUITEM "Dump Marvell WiFi Firmware" MenuItemDumpMRV
-		MENUITEM "Dump ASUS WiFi Firmware" MenuItemDumpASUS
+		MENUITEM "Dump Marvell WiFi FW" MenuItemDumpMRV
+		MENUITEM "Dump ASUS WiFi FW (N/A)" MenuItemDumpASUS
 		MENUITEM "GSM Unlock Code" MenuItemGsmCode
 	END
 	PULLDOWN "Tools"
@@ -43,7 +43,7 @@ END
 
 FORM ID MainForm AT (0 0 160 160) NOFRAME USABLE MENUID MainFormMenu HELPID GnuGpl MODAL
 BEGIN
-        TITLE "Cocoboot Linux Loader"
+        TITLE "Cocoboot Boot Loader"
 	FIELD ID MachIdField  AT (2 16 29 16) MAXCHARS 5 UNDERLINED
 	FIELD ID MachNameField AT (34 16 126 16) MAXCHARS 100 NONEDITABLE
 	
@@ -88,8 +88,9 @@ END
 
 
 
-STRING GnuGpl	"Cocoboot 0.5.3, PalmOS Linux loader.\n"\
-		"Copyright (C) 2006\n"\
+STRING GnuGpl	"Cocoboot 0.6.0\n"\
+		"PalmOS Linux/OpenBSD loader.\n"\
+		"Copyright (C) 2006-2009\n"\
 		"\n"\
 		"www.hackndev.com\n"\
 		"\n"\
