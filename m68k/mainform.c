@@ -7,6 +7,7 @@
 #include "regs.h"
 #include "imgloader.h"
 #include "options.h"
+#include "elf.h"
 #include "fwutils.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -446,10 +447,23 @@ int check_image(char *name)
 	char loc[32];
 	UInt32 size = 0;
 	Int32 vol;
+	Int32 bytes;
+	char *image = NULL;
 
 	vol = search_image(name, loc, sizeof(loc), &size);
 	if(vol>=-1) {
-		lprintf("[%s] %s: %ld bytes\n", loc, name, size);
+		FtrPtrNew (CREATOR_ID, FEATURE_NUM + 0, 16, &image);
+		bytes = load_image(name, 4, (UInt16)vol, image);
+		
+		if (bytes > 0 && image[0] == ELFMAG0 && image[1] == ELFMAG1 &&
+			image[2] == ELFMAG2 && image[3] == ELFMAG3)
+			lprintf("[%s] %s: %ld bytes [ ELF ]\n", loc, name, size);
+		else if (bytes > 0)
+			lprintf("[%s] %s: %ld bytes [ Linux ]\n", loc, name, size);
+		else
+			lprintf("[%s] %s: %ld bytes\n", loc, name, size);
+
+		FtrPtrFree(CREATOR_ID, FEATURE_NUM + 0);
 		return 1;
 	} else {
 		lprintf("%s not found! (%ld)\n", name, vol);
