@@ -1,5 +1,5 @@
 PREFIX=arm-angstrom-linux-gnueabi-
-CFLAGS=-Wall -Wextra -Werror -nostdlib -nostartfiles -nodefaultlibs -fno-builtin -I. -mcpu=arm7tdmi
+CFLAGS=-Wall -Wextra -Werror -nostdlib -nostartfiles -nodefaultlibs -fno-builtin -I. -mcpu=arm7tdmi -O3
 
 all: kernel.bin
 

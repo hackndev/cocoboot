@@ -3,19 +3,21 @@
  * This simply blinks the LEDs on PalmLD.
  * */
 
-#define delay(i)	for(i = 0; i < 0x200000; i++)
+#define	ADDR	*(unsigned volatile long *)
 
 void kmain()
 {
-	int i;
-	(*(unsigned long *)0x40e00020) &= ~0x40000000;
-	(*(unsigned long *)0x40e0001c) &= ~0x00100000;
+	ADDR 0x40e00028 |= 0x00100000;	/* clear GPIO 52 */
+	ADDR 0x40e0002c |= 0x40000000;	/* clear GPIO 94 */
 	for (;;) {
-		(*(unsigned long *)0x40e00020) &= ~0x40000000;
-		(*(unsigned long *)0x40e0001c) |= 0x00100000;
-		delay(i);
-		(*(unsigned long *)0x40e0001c) &= ~0x00100000;
-		(*(unsigned long *)0x40e00020) |= 0x40000000;
-		delay(i);
+		if ((ADDR 0x40900000) % 2) {
+			if ((ADDR 0x40e00008) & 0x40000000)
+				ADDR 0x40e0002c |= 0x40000000;	/* clear GPIO 94 */
+			ADDR 0x40e0001c |= 0x00100000;	/* set GPIO 52 */
+		} else {
+			if ((ADDR 0x40e00004) & 0x00100000)
+				ADDR 0x40e00028 |= 0x00100000;	/* clear GPIO52 */
+			ADDR 0x40e00020 |= 0x40000000;	/* set GPIO 94 */
+		}
 	}
 }
