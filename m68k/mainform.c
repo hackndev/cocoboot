@@ -452,7 +452,7 @@ int check_image(char *name)
 
 	vol = search_image(name, loc, sizeof(loc), &size);
 	if(vol>=-1) {
-		FtrPtrNew (CREATOR_ID, FEATURE_NUM + 0, 16, &image);
+		FtrPtrNew (CREATOR_ID, FEATURE_NUM + 0, 16, (void *)&image);
 		bytes = load_image(name, 4, (UInt16)vol, image);
 		
 		if (bytes > 0 && image[0] == ELFMAG0 && image[1] == ELFMAG1 &&
