@@ -41,20 +41,22 @@ int mytest(UInt32 *img) {
 
 /* copy_section()
  *
- * Copy a section from file to given location
+ * Copy a section from file to given location which is wiped before
  * */
-static void copy_section(UInt32 *img, struct elf32_phdr *phdr)
+static void copy_section(unsigned char *dst, unsigned char *src,
+			 UInt32 clear_size, UInt32 copy_size,
+			 UInt32 pv_offset)
 {
-	UInt32 addr = phdr->p_paddr;		/* destination address */
-	UInt32 offset = phdr->p_offset / 4;	/* offset in file */
-	UInt32 len = phdr->p_filesz / 4;	/* size of data being loaded */
+	int i;
+	unsigned char* dst_base = dst;
 
-	/* Copy the section in place */
-	while(len--) {
-		*((unsigned long *)addr) = *(img + offset);
-		addr += 4;
-		offset++;
-	}
+	for (i = 0 ; i < clear_size; i++)
+		*(dst - pv_offset + i) = 0x00;
+
+	dst = dst_base;
+	for (i = 0 ; i < copy_size; i++)
+		*(dst - pv_offset + i) = *(src + i);
+
 }
 
 static void boot_elf(UInt32 entry)
@@ -70,13 +72,23 @@ void relocate_elf(UInt32 *img, UInt32 size)
 {
 	struct elf32_hdr *ehdr = (struct elf32_hdr *) img;
 	struct elf32_phdr *phdr;
+	struct elf32_shdr *shdr;
 	unsigned int i;
+	unsigned long pvdelta = 0;
 
-	/* For each Program header, relocate it's section */
+#define	PF_MASK	0x7
+#define	PT_LOAD	0x01
+
 	for (i = 0; i < ehdr->e_phnum; i++) {
-		phdr = (struct elf32_phdr *)(img + ((ehdr->e_phoff +
-			(ehdr->e_phentsize * i)) >> 2));
-		copy_section(img, phdr);
+		phdr = (struct elf32_phdr *)((char *)img +
+			(ehdr->e_phoff + (ehdr->e_phentsize * i)));
+		if (!pvdelta)
+			pvdelta = phdr->p_vaddr - phdr->p_paddr;
+		if (!(phdr->p_type == PT_LOAD && (phdr->p_flags & PF_MASK)))
+			continue;
+		copy_section((unsigned char *)phdr->p_vaddr,
+				((unsigned char *)img + phdr->p_offset),
+				phdr->p_memsz, phdr->p_filesz, pvdelta);
 	}
 
 	/* Jump to kernel */
