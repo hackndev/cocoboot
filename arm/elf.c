@@ -43,12 +43,12 @@ int mytest(UInt32 *img) {
  *
  * Copy a section from file to given location which is wiped before
  * */
-static void copy_section(unsigned char *dst, unsigned char *src,
+static void copy_section(UInt32 *dst, UInt32 *src,
 			 UInt32 clear_size, UInt32 copy_size,
 			 UInt32 pv_offset)
 {
 	int i;
-	unsigned char* dst_base = dst;
+	UInt32* dst_base = dst;
 
 	for (i = 0 ; i < clear_size; i++)
 		*(dst - pv_offset + i) = 0x00;
@@ -72,7 +72,6 @@ void relocate_elf(UInt32 *img, UInt32 size)
 {
 	struct elf32_hdr *ehdr = (struct elf32_hdr *) img;
 	struct elf32_phdr *phdr;
-	struct elf32_shdr *shdr;
 	unsigned int i;
 	unsigned long pvdelta = 0;
 
@@ -86,9 +85,8 @@ void relocate_elf(UInt32 *img, UInt32 size)
 			pvdelta = phdr->p_vaddr - phdr->p_paddr;
 		if (!(phdr->p_type == PT_LOAD && (phdr->p_flags & PF_MASK)))
 			continue;
-		copy_section((unsigned char *)phdr->p_vaddr,
-				((unsigned char *)img + phdr->p_offset),
-				phdr->p_memsz, phdr->p_filesz, pvdelta);
+		copy_section((UInt32 *)phdr->p_vaddr, img + phdr->p_offset / 4,
+				phdr->p_memsz / 4, phdr->p_filesz / 4, pvdelta / 4);
 	}
 
 	/* Jump to kernel */
