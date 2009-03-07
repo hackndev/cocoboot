@@ -73,7 +73,7 @@ void relocate_elf(UInt32 *img, UInt32 size)
 	struct elf32_hdr *ehdr = (struct elf32_hdr *) img;
 	struct elf32_phdr *phdr;
 	unsigned int i;
-	unsigned long pvdelta = 0;
+	unsigned long pvdelta = 0, cpsr;
 
 #define	PF_MASK	0x7
 #define	PT_LOAD	0x01
@@ -88,6 +88,10 @@ void relocate_elf(UInt32 *img, UInt32 size)
 		copy_section((UInt32 *)phdr->p_vaddr, img + phdr->p_offset / 4,
 				phdr->p_memsz / 4, phdr->p_filesz / 4, pvdelta / 4);
 	}
+
+	asm volatile ("mrs %0, cpsr_all" : "=r" (cpsr));
+	cpsr |= 0xc0;
+	asm volatile ("msr cpsr_all, %0" :: "r" (cpsr));
 
 	/* Jump to kernel */
 	boot_elf(ehdr->e_entry);
