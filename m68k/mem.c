@@ -20,7 +20,7 @@
 #include "cocoboot.h"
 #include "mem.h"
 #include "cpu.h"
-
+#include "regs.h"
 
 UInt32 get_ram_base()
 {
@@ -43,7 +43,7 @@ UInt32 get_ram_base()
 	return 0;
 }
 
-UInt32 get_ram_size()
+UInt32 get_gen_ram_size()
 {
 	/* PalmOS seems to not report the correct RAM size, so we round
 	 * to the next highest power of 2
@@ -54,6 +54,21 @@ UInt32 get_ram_size()
 		size <<= 1;
 	} while (size < reported);
 	return size;
+}
+
+UInt32 get_ram_size()
+{
+	UInt32 mem;
+	if ((get_cpu() & CPU_VENDOR_MASK) == CPUV_INTEL) {
+		mem = EndianSwap32(*(UInt32 *)phys_to_virt(MDCNFG));
+		if (!(mem & 0x3))
+			mem >>= 0x10;
+		return ((UInt32)(1 << (8 + ((mem >> 3) & 0x3))) *
+			(UInt32)(1 << (11 + ((mem >> 5) & 0x3))) *
+			(UInt32)((mem & 0x1) + ((mem >> 1) & 0x1)) *
+			((mem & 0x4) ? 16 : 32) ) >> 1;
+	} else
+		return get_gen_ram_size();
 }
 
 UInt32 get_reported_ram_size()

@@ -22,5 +22,7 @@
 #define DMA_TARGET 0x8
 #define DMA_CMD 0xc
 
+/* XScale memory configuration register */
+#define	MDCNFG	0x48000000
 
 #endif
