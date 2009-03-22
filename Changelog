@@ -1,3 +1,6 @@
+version 0.6.1
+  - Properly implemented Marvell WiFi firmware dumper.
+
 version 0.6.0
   - ELF binaries loading support (and OpenBSD kernel booting support).
   - Simple ELF demo kernel.
