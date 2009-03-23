@@ -56,17 +56,21 @@ UInt32 get_gen_ram_size()
 	return size;
 }
 
+UInt32 xscale_get_partition_pair_size(UInt32 mem)
+{
+	return ((UInt32)(1 << (8 + ((mem >> 3) & 0x3))) *
+		(UInt32)(1 << (11 + ((mem >> 5) & 0x3))) *
+		(UInt32)((mem & 0x1) + ((mem >> 1) & 0x1)) *
+		((mem & 0x4) ? 16 : 32) ) >> (1 + !!(mem & 0x1000));
+}
+
 UInt32 get_ram_size()
 {
 	UInt32 mem;
 	if ((get_cpu() & CPU_VENDOR_MASK) == CPUV_INTEL) {
 		mem = EndianSwap32(*(UInt32 *)phys_to_virt(MDCNFG));
-		if (!(mem & 0x3))
-			mem >>= 0x10;
-		return ((UInt32)(1 << (8 + ((mem >> 3) & 0x3))) *
-			(UInt32)(1 << (11 + ((mem >> 5) & 0x3))) *
-			(UInt32)((mem & 0x1) + ((mem >> 1) & 0x1)) *
-			((mem & 0x4) ? 16 : 32) ) >> 1;
+		return (xscale_get_partition_pair_size(mem) +
+			xscale_get_partition_pair_size(mem >> 16));
 	} else
 		return get_gen_ram_size();
 }
