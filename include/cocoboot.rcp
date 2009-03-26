@@ -1,7 +1,7 @@
 #include "cocoboot_r.h"
 
 APPLICATIONICONNAME ID 1000 "Cocoboot"
-VERSION "0.6.1"
+VERSION "{$VERSION}"
 
 ICON
 BEGIN
@@ -88,9 +88,10 @@ END
 
 
 
-STRING GnuGpl	"Cocoboot 0.6.1\n"\
+STRING GnuGpl	"Cocoboot {$VERSION}\n"\
+		"{$BUILD}"\
 		"PalmOS Linux/OpenBSD loader.\n"\
-		"Copyright (C) 2006-2009\n"\
+		"Copyright (C) 2006-{$CYEAR}\n"\
 		"\n"\
 		"www.hackndev.com\n"\
 		"\n"\
