@@ -87,6 +87,11 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	if(!kernel || !cmdline) {
 		return 0xc0ffee;
 	}
+
+	/* Disable memory protection (page table is read-only
+	 * on Treos and Centro) */
+	asm volatile ("mcr p15, 0, %0, c3, c3, 0" : : "r"(0xffffffff) );
+	
 	UInt32 initrd_offset;
 
 	/* We do this before tinkering with hardware, it's safer */
@@ -124,11 +129,7 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 	 * Lock the door! What it won't know, won't hurt it.
 	 */
 
-
 	irq_off();	
-
-	/* Disable memory protection (page table is read-only on treos) */
-	asm volatile ("mcr p15, 0, %0, c3, c3, 0" : : "r"(0xffffffff) );  
 
 	/* Map the page containing pphys_jump to identity */
 	map(g, (UInt32)pphys_jump, (UInt32)pphys_jump);
