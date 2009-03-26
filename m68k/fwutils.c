@@ -174,7 +174,3 @@ UInt32 extract_mrv_wifi_fw() {
 	FrmCustomAlert(InfoAlert, buf,"","");
 	return 0;
 }
-
-UInt32 extract_asus_wifi_fw() {
-    return 0;
-}

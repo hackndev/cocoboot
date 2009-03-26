@@ -78,6 +78,10 @@ unsigned long arm_entry(const void *emulStateP, char *userData68KP,
 	case ARM_install_irqhandler:
 		ret = install_irqhandler(g, (UInt32*)pop_uint32(stack));
 		break;
+	case ARM_unlock_mem:
+		asm volatile ("mcr p15, 0, %0, c3, c3, 0" : : "r"(0xffffffff) );  
+		ret = 0;
+		break;
 	default:
 		ret = 0xbadf0000 ^ func;
 	}

@@ -21,6 +21,7 @@
 #define ARM_boot_linux  3
 #define ARM_test  4
 #define ARM_install_irqhandler  5
+#define ARM_unlock_mem 6
 
 typedef UInt32 ArmStack;
 

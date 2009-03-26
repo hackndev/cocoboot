@@ -433,9 +433,9 @@ Boolean mainform_menu_event(Int16 id)
  		return true; 
 	case MenuItemDumpMRV:
  		extract_mrv_wifi_fw();
- 		return true; 
-	case MenuItemDumpASUS:
- 		extract_asus_wifi_fw();
+ 		return true;
+	case MenuItemUnlockMem:
+ 		call_arm(arm_stack, ARM_unlock_mem);
  		return true; 
 
 	}
