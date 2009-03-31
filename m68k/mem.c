@@ -60,8 +60,9 @@ UInt32 xscale_get_partition_pair_size(UInt32 mem)
 {
 	return ((UInt32)(1 << (8 + ((mem >> 3) & 0x3))) *
 		(UInt32)(1 << (11 + ((mem >> 5) & 0x3))) *
-		(UInt32)((mem & 0x1) + ((mem >> 1) & 0x1)) *
-		((mem & 0x4) ? 16 : 32) ) >> (1 + !!(mem & 0x1000));
+		(UInt32)((mem & 0x1) | ((mem >> 1) & 0x1)) *
+		(((mem >> 2) & 0x1) ? 16 : 32) ) >>
+		(1 + !!((mem & 0x1000) && (mem & 0x04)));
 }
 
 UInt32 get_ram_size()
@@ -175,4 +176,3 @@ UInt32 map_mem(UInt32 phys)
 
 	return NULL;
 }
-
