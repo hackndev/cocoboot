@@ -34,6 +34,7 @@ struct Machine mach_table[] = {
 	{ 'H102',  909, "Palm Treo 650" },
 	{ 'D053', 1230, "Palm Treo 680" },
 	{ 'D052', 1421, "Palm Treo 700p" },
+	{ 'D060', 1424, "Palm Treo 755p" },
 	{ 'D061', 1944, "Palm Centro (GSM)" },
 	{ 'D062', 1944, "Palm Centro (CDMA)" },
 	{ 'MT64',  918, "Palm Tungsten C" },
@@ -98,6 +99,7 @@ UInt32 get_tt_offset()
 	case 909:	/* Treo 650 */
 	case 1230:	/* Treo 680 */
 	case 1421:	/* Treo 700p */
+	case 1424:	/* Treo 755p */
 	case 1944:	/* Centro */
 		return 0;
 	default:
