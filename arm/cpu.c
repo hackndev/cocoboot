@@ -23,6 +23,7 @@
 #define GEDR2           __REG(0x40E00050)  /* GPIO Edge Detect Status Register GPIO<80:64> */
 
 #define UDCCR           __REG(0x40600000)  /* UDC Control Register */
+#define CKEN            __REG(0x41300004)  /* Clock Enable Register */
 
 void setup_xscale_cpu(void)
 {
@@ -50,4 +51,6 @@ void setup_xscale_cpu(void)
 	GEDR2 = GEDR2;
 
 	UDCCR = 0;
+
+	CKEN &= 0x580200;
 }
