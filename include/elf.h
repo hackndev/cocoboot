@@ -67,4 +67,4 @@ struct elf32_shdr {
 };
 
 int test_elf(UInt32 *img);
-void relocate_elf(UInt32 *kernel, UInt32 size);
+void relocate_elf(UInt32 *kernel, UInt32 size, UInt32 mach);

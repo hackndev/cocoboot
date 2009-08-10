@@ -166,7 +166,7 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 #endif
 	/* do CPU-specific configuration (like interrupt masking) */
 	if (pg->cpu & CPUV_INTEL) {
-		setup_xscale_cpu();
+		setup_xscale_cpu(elf);
 	}
 
 	if (pg->mach_num==MACH_TYPE_T3XSCALE){
@@ -186,7 +186,7 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 
 	if (elf)
 		/* handle additional stuff necessary to load ELF kernel */
-		relocate_elf(kernel, kernel_size);
+		relocate_elf(kernel, kernel_size, pg->mach_num);
 	else
 		/* bring on the penguin! */
 		jump_to_kernel(kernel, pg->ram_base + TAG_OFFSET, pg->mach_num);

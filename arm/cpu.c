@@ -25,7 +25,7 @@
 #define UDCCR           __REG(0x40600000)  /* UDC Control Register */
 #define CKEN            __REG(0x41300004)  /* Clock Enable Register */
 
-void setup_xscale_cpu(void)
+void setup_xscale_cpu(int elf)
 {
 	/* Interrupts off */
 	asm volatile ("mrs r0, cpsr");
@@ -52,5 +52,6 @@ void setup_xscale_cpu(void)
 
 	UDCCR = 0;
 
-	CKEN &= 0x580200;
+	if (!elf)
+		CKEN &= 0x580200;
 }

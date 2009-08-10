@@ -10,7 +10,7 @@ UInt32 virt_to_phys(ArmGlobals *g, UInt32 virt);
 void map(ArmGlobals *g, UInt32 phys, UInt32 virt);
 
 /*cpu.c*/
-void setup_xscale_cpu(void);
+void setup_xscale_cpu(int elf);
 
 /* boot.c */
 UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,

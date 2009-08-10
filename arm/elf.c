@@ -61,14 +61,24 @@ static void copy_section(UInt32 *dst, UInt32 *src,
 
 static void boot_elf(UInt32 entry)
 {
-	asm volatile (	"mov pc, %0" :: "r"(entry) : "r0");
+	asm volatile (	"mrs r12, cpsr;"
+			"bic r12, r12, #0x1f;"
+			"orr r12, r12, #0x13;"
+			"msr cpsr_all, r12;"
+			"mov r0, %0;"
+			"mov r1, #0x30;"
+			"mov r2, #0;"
+			"mcr 15, 0, r1, c1, c0, 0;"
+			"mcr 15, 0, r2, c8, c7, 0;"
+			"mov pc, r0"
+			:: "r"(entry) : "r0","r1","r2");
 }
 
 /* relocate_elf()
  *
  * Relocate the ELF file in memory ... ToComplete
  * */
-void relocate_elf(UInt32 *img, UInt32 size)
+void relocate_elf(UInt32 *img, UInt32 size, UInt32 mach)
 {
 	struct elf32_hdr *ehdr = (struct elf32_hdr *) img;
 	struct elf32_phdr *phdr;
@@ -92,6 +102,9 @@ void relocate_elf(UInt32 *img, UInt32 size)
 	asm volatile ("mrs %0, cpsr_all" : "=r" (cpsr));
 	cpsr |= 0xc0;
 	asm volatile ("msr cpsr_all, %0" :: "r" (cpsr));
+
+	/* Save machine ID to the SRAM ... this binds it to PXA27x for now */
+	*(UInt32 *)0x5c000000 = mach;
 
 	/* Jump to kernel */
 	boot_elf(ehdr->e_entry);
