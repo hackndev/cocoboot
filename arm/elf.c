@@ -103,8 +103,8 @@ void relocate_elf(UInt32 *img, UInt32 size, UInt32 mach)
 	cpsr |= 0xc0;
 	asm volatile ("msr cpsr_all, %0" :: "r" (cpsr));
 
-	/* Save machine ID to the SRAM ... this binds it to PXA27x for now */
-	*(UInt32 *)0x5c000000 = mach;
+	/* Shove machine ID into PSPR ... ewww! */
+	*(UInt32 *)0x40f00008 = mach;
 
 	/* Jump to kernel */
 	boot_elf(ehdr->e_entry);
