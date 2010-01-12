@@ -23,11 +23,13 @@
 #include "elf.h"
 
 #define MACH_TYPE_T3XSCALE	829
+#define MACH_XSCALE_TREO680	1230
 
 #define TAG_OFFSET		0x100
 #define INITRD_OFFSET		0x0400000
 
 #define T3_INITRD_OFFSET	0x1500000
+#define T680_INITRD_OFFSET	0x0600000
 
 
 static void jump_to_kernel(void *kernel_base, UInt32 tag_base, UInt32 mach)
@@ -171,6 +173,8 @@ UInt32 boot_linux(ArmGlobals *g, void *kernel, UInt32 kernel_size,
 
 	if (pg->mach_num==MACH_TYPE_T3XSCALE){
 	    initrd_offset=T3_INITRD_OFFSET;
+	} else if (pg->mach_num==MACH_XSCALE_TREO680){
+	    initrd_offset=T680_INITRD_OFFSET;
 	} else {
 	    initrd_offset=INITRD_OFFSET;
 	}
