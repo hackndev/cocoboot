@@ -69,17 +69,17 @@ Int32 search_image(char *name, char *loc, UInt16 loc_len, UInt32 *size)
 {
 	UInt16 vol_ref;
 	MemHandle tblh;
-	ImageTable *tbl;
+	ImageTable *tbl = NULL;
 	int i;
 	Int32 ret = -3;
 
 	if(!loc || !name || !size) return -2;
 
 	tblh = DmGetResource('iTbl', 0);
-	if(!tblh) goto out;
+	if(!tblh) goto filesystem;
 
 	tbl = MemHandleLock(tblh);
-	if(!tbl) goto out_release;
+	if(!tbl) goto out;
 
 	i = 0;
 	while(tbl[i].start != -1) {
@@ -88,23 +88,23 @@ Int32 search_image(char *name, char *loc, UInt16 loc_len, UInt32 *size)
 			StrCopy(loc, "Builtin");
 			*size = tbl[i].size;
 			ret = -1;
-			goto out_unlock;
+			goto out;
 		}
 		i++;
 		//if(i==3) break;
 	}
+
+ filesystem:
 	/* image not found compiled-in, check filesystem */
 	if(search_file(name, &vol_ref, size)) {
 		VFSVolumeGetLabel(vol_ref, loc, loc_len-1);
 		ret = vol_ref;
 	}
-	
-
- out_unlock:
-	MemHandleUnlock(tblh);
- out_release:
-	DmReleaseResource(tblh);
  out:
+	if(tbl)
+		MemHandleUnlock(tblh);
+	if(tblh)
+		DmReleaseResource(tblh);
 	return ret;
 }
 
